@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { registerEmployeeManager } from "../services/api";
 import "../styles/pages/admin.css";
 
@@ -13,9 +13,20 @@ function AdminLanding() {
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [adminName, setAdminName] = useState("");
+
+  // 🟢 load admin name from localStorage
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      setAdminName(`${user.firstName} ${user.lastName}`);
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     window.location.href = "/";
   };
 
@@ -38,8 +49,14 @@ function AdminLanding() {
     setLoading(false);
 
     if (data && data.id) {
-      setMsg(`Employee Manager created: ${data.firstName} ${data.lastName}`);
-      setForm({ firstName: "", lastName: "", email: "", password: "", rePassword: "" });
+      setMsg(`✅ Employee Manager created: ${data.firstName} ${data.lastName}`);
+      setForm({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        rePassword: "",
+      });
     } else {
       setErr(data?.message || "Failed to register manager");
     }
@@ -48,13 +65,19 @@ function AdminLanding() {
   return (
     <div className="admin-wrap">
       <header className="admin-header">
-        <h1>Admin Dashboard</h1>
-        <button className="logout-btn" onClick={handleLogout}>Logout</button>
+        <div className="admin-info">
+          <span className="admin-name">👤 {adminName}</span>
+        </div>
+        <button className="logout-btn" onClick={handleLogout}>
+          Logout
+        </button>
       </header>
 
       <section className="card">
         <h2>Register Employee Manager</h2>
-        <p className="hint">Fill the form to add a new Employee Manager for the project.</p>
+        <p className="hint">
+          Fill the form to add a new Employee Manager for the project.
+        </p>
 
         {msg && <div className="ok">{msg}</div>}
         {err && <div className="error">{err}</div>}

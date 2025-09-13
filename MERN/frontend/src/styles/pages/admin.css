@@ -50,3 +50,23 @@ body { margin: 0; font-family: 'Poppins', sans-serif; background:#f7f9fc; }
 @media (max-width: 640px) {
   .grid { grid-template-columns: 1fr; }
 }
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-info {
+  display: flex;
+  align-items: center;
+}
+
+.admin-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  background: #eef3ff;
+  padding: 6px 12px;
+  border-radius: 8px;
+}

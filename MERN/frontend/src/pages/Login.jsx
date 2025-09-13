@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { loginUser } from "../services/api";
-import "../styles/pages/login.css";  // <-- CSS Import
+import { loginUser } from "../services/api";   // api.js එකේ function එක
+import "../styles/pages/login.css";            // CSS file එක
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -17,7 +17,11 @@ function Login() {
       const data = await loginUser(email, password);
 
       if (data.token) {
+        // 🟢 Save token + user details
         localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        // 🟢 Navigate based on landing path
         if (data.landing === "/admin") {
           window.location.href = "/admin";
         } else if (data.landing === "/employee-manager") {
@@ -37,31 +41,33 @@ function Login() {
 
   return (
     <div className="login-container">
-      <h2>Rubber Factory Login</h2>
+      <div className="login-box">
+        <h2>Rubber Factory Login</h2>
 
-      {error && <div className="error">{error}</div>}
+        {error && <div className="error">{error}</div>}
 
-      <form onSubmit={handleSubmit}>
-        <label>Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <form onSubmit={handleSubmit}>
+          <label>Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-        <label>Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          <label>Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+          <button type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

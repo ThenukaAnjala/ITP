@@ -23,3 +23,24 @@ body { margin: 0; font-family: 'Poppins', sans-serif; background:#f7f9fc; }
 }
 .card h2 { margin:0 0 6px; }
 .hint { margin:0 0 6px; color:#666; font-size:14px; }
+
+.manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.manager-info {
+  display: flex;
+  align-items: center;
+}
+
+.manager-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  background: #eef3ff;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
