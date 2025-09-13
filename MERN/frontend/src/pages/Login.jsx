@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { loginUser } from "../services/api";
+import "../styles/pages/login.css";  // <-- CSS Import
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -17,8 +18,6 @@ function Login() {
 
       if (data.token) {
         localStorage.setItem("token", data.token);
-
-        // Navigate by role landing
         if (data.landing === "/admin") {
           window.location.href = "/admin";
         } else if (data.landing === "/employee-manager") {
@@ -38,33 +37,31 @@ function Login() {
 
   return (
     <div className="login-container">
-      <div className="login-box">
-        <h2>Rubber Factory Login</h2>
+      <h2>Rubber Factory Login</h2>
 
-        {error && <div className="error">{error}</div>}
+      {error && <div className="error">{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+      <form onSubmit={handleSubmit}>
+        <label>Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+        <label>Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
 
-          <button type="submit" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-      </div>
+        <button type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
+      </form>
     </div>
   );
 }
