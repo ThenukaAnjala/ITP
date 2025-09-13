@@ -1,4 +1,3 @@
-// routes/userRoutes.js
 import express from "express";
 import { body, validationResult } from "express-validator";
 import User, { ROLES } from "../models/User.js";
@@ -6,13 +5,10 @@ import { protect } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/roles.js";
 
 const router = express.Router();
-
-// Who can manage employees? -> ADMIN and EMPLOYEE_MANAGER
 const MANAGERS = [ROLES.ADMIN, ROLES.EMPLOYEE_MANAGER];
 
 /**
  * GET /api/users
- * list all employees (hide passwords)
  */
 router.get("/", protect, authorizeRoles(...MANAGERS), async (_req, res) => {
   const users = await User.find().select("-password").sort({ createdAt: -1 });
@@ -21,7 +17,6 @@ router.get("/", protect, authorizeRoles(...MANAGERS), async (_req, res) => {
 
 /**
  * PATCH /api/users/:id
- * edit firstName, lastName, role, isActive (basic needs)
  */
 router.patch(
   "/:id",
@@ -55,15 +50,10 @@ router.patch(
 /**
  * DELETE /api/users/:id
  */
-router.delete(
-  "/:id",
-  protect,
-  authorizeRoles(...MANAGERS),
-  async (req, res) => {
-    const u = await User.findByIdAndDelete(req.params.id);
-    if (!u) return res.status(404).json({ message: "User not found" });
-    res.json({ message: "User removed" });
-  }
-);
+router.delete("/:id", protect, authorizeRoles(...MANAGERS), async (req, res) => {
+  const u = await User.findByIdAndDelete(req.params.id);
+  if (!u) return res.status(404).json({ message: "User not found" });
+  res.json({ message: "User removed" });
+});
 
 export default router;

@@ -1,7 +1,7 @@
-// scripts/seedAdmin.js
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import User, { ROLES } from "../models/User.js";
+
 dotenv.config();
 
 const run = async () => {

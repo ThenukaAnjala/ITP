@@ -1,4 +1,3 @@
-// routes/authRoutes.js
 import express from "express";
 import jwt from "jsonwebtoken";
 import { body, validationResult } from "express-validator";
@@ -14,9 +13,61 @@ const signToken = (u) =>
   });
 
 /**
- * POST /api/auth/login   (ONE login screen for all)
- * body: { email, password }
- * returns: { token, user:{...}, landing:'/admin' | '/employee-manager' | ... }
+ * 1) POST /api/auth/register-admin
+ * One-time Admin self-registration
+ */
+router.post(
+  "/register-admin",
+  [
+    body("firstName").notEmpty(),
+    body("lastName").notEmpty(),
+    body("email").isEmail(),
+    body("password").isLength({ min: 6 }),
+    body("rePassword").custom((v, { req }) => v === req.body.password),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res
+        .status(400)
+        .json({ message: "Invalid input", errors: errors.array() });
+
+    const { firstName, lastName, email, password } = req.body;
+
+    const existsAdmin = await User.findOne({ role: ROLES.ADMIN });
+    if (existsAdmin) {
+      return res
+        .status(403)
+        .json({ message: "Admin already registered. Please login." });
+    }
+
+    const exists = await User.findOne({ email });
+    if (exists) return res.status(409).json({ message: "Email already used" });
+
+    const admin = await User.create({
+      firstName,
+      lastName,
+      email,
+      password,
+      role: ROLES.ADMIN,
+    });
+
+    return res.status(201).json({
+      message: "✅ Admin registered successfully. Please login now.",
+      user: {
+        id: admin._id,
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        email: admin.email,
+        role: admin.role,
+      },
+    });
+  }
+);
+
+/**
+ * 2) POST /api/auth/login
+ * One login screen for all roles
  */
 router.post(
   "/login",
@@ -24,7 +75,9 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
-      return res.status(400).json({ message: "Invalid input", errors: errors.array() });
+      return res
+        .status(400)
+        .json({ message: "Invalid input", errors: errors.array() });
 
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -33,7 +86,6 @@ router.post(
 
     const token = signToken(user);
 
-    // role → landing path (frontend use this to navigate)
     const byRole = {
       [ROLES.ADMIN]: "/admin",
       [ROLES.EMPLOYEE_MANAGER]: "/employee-manager",
@@ -56,9 +108,8 @@ router.post(
 );
 
 /**
- * POST /api/auth/admin/register   (ADMIN-only registration page)
- * Admin creates new users — for your spec we’ll create Employee Managers.
- * body: { firstName, lastName, email, password, rePassword }
+ * 3) POST /api/auth/admin/register
+ * Admin creates Employee Managers
  */
 router.post(
   "/admin/register",
@@ -74,7 +125,9 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
-      return res.status(400).json({ message: "Invalid input", errors: errors.array() });
+      return res
+        .status(400)
+        .json({ message: "Invalid input", errors: errors.array() });
 
     const { firstName, lastName, email, password } = req.body;
 
@@ -86,7 +139,7 @@ router.post(
       lastName,
       email,
       password,
-      role: ROLES.EMPLOYEE_MANAGER, // per requirement: admin registers employee managers
+      role: ROLES.EMPLOYEE_MANAGER,
     });
 
     res.status(201).json({
