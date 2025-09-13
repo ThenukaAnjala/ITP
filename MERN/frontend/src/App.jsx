@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import AdminLanding from "./pages/AdminLanding";
+import EmployeeManagerLanding from "./pages/EmployeeManagerLanding";
 
 function App() {
   return (
@@ -8,10 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/admin" element={<AdminLanding />} />
-        <Route
-          path="/employee-manager"
-          element={<h1>Employee Manager Landing Page</h1>}
-        />
+        <Route path="/employee-manager" element={<EmployeeManagerLanding />} />
       </Routes>
     </Router>
   );
