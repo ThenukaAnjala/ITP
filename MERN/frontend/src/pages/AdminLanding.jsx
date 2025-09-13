@@ -1,18 +1,22 @@
-import { Link } from 'react-router-dom';
+import React from "react";
+import "../styles/pages/admin.css"; // optional CSS file if you want styles
 
-const AdminLanding = () => {
-  const user = JSON.parse(localStorage.getItem('user'));
+function AdminLanding() {
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // 🔑 remove token
+    window.location.href = "/"; // redirect to login page
+  };
+
   return (
-    <div>
-      <h2>Admin Dashboard</h2>
-      <p>Welcome {user?.firstName}</p>
-      <nav>
-        <Link to="/admin/register">Register Employee Manager</Link>
-        <br />
-        <Link to="/employee-manager">Manage Employees</Link>
-      </nav>
+    <div className="admin-container">
+      <h1>Welcome Admin 🎉</h1>
+      <p>You are logged in as <b>Admin</b>.</p>
+
+      <button className="logout-btn" onClick={handleLogout}>
+        Logout
+      </button>
     </div>
   );
-};
+}
 
 export default AdminLanding;
