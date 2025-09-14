@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { registerEmployeeManager, getUsers, deleteUser } from "../services/api";
+import {
+  registerEmployeeManager,
+  getUsers,
+  deleteUser,
+  updateUser,
+} from "../services/api";
 import "../styles/pages/admin.css";
 
 function AdminLanding() {
@@ -15,6 +20,7 @@ function AdminLanding() {
   const [loading, setLoading] = useState(false);
   const [adminName, setAdminName] = useState("");
   const [users, setUsers] = useState([]);
+  const [editingUser, setEditingUser] = useState(null); // 🟢 store user being edited
 
   // load admin + users
   useEffect(() => {
@@ -52,6 +58,34 @@ function AdminLanding() {
     setMsg("");
     setErr("");
 
+    // 🟢 If editing, call update
+    if (editingUser) {
+      setLoading(true);
+      const updated = await updateUser(editingUser._id, {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+      });
+      setLoading(false);
+
+      if (updated && updated._id) {
+        setMsg(`✅ Updated: ${updated.firstName} ${updated.lastName}`);
+        setEditingUser(null);
+        setForm({
+          firstName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          rePassword: "",
+        });
+        loadUsers();
+      } else {
+        setErr(updated?.message || "Failed to update user");
+      }
+      return;
+    }
+
+    // 🟢 Else, register new Employee Manager
     if (form.password !== form.rePassword) {
       setErr("Passwords do not match");
       return;
@@ -86,6 +120,18 @@ function AdminLanding() {
     }
   };
 
+  const handleEdit = (u) => {
+    setEditingUser(u);
+    setForm({
+      firstName: u.firstName,
+      lastName: u.lastName,
+      email: u.email,
+      password: "",
+      rePassword: "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" }); // scroll form to top
+  };
+
   return (
     <div className="admin-wrap">
       {/* Header */}
@@ -100,11 +146,15 @@ function AdminLanding() {
 
       {/* Main grid */}
       <div className="admin-grid">
-        {/* Register Form */}
+        {/* Register / Edit Form */}
         <section className="card">
-          <h2>Register Employee Manager</h2>
+          <h2>
+            {editingUser ? "✏️ Edit Employee Manager" : "Register Employee Manager"}
+          </h2>
           <p className="hint">
-            Fill the form to add a new Employee Manager for the project.
+            {editingUser
+              ? "Update details of the selected Employee Manager."
+              : "Fill the form to add a new Employee Manager for the project."}
           </p>
 
           {msg && <div className="ok">{msg}</div>}
@@ -139,33 +189,62 @@ function AdminLanding() {
                 required
               />
             </div>
-            <div className="field">
-              <label>Password</label>
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={onChange}
-                minLength={6}
-                required
-              />
-            </div>
-            <div className="field">
-              <label>Re-Password</label>
-              <input
-                type="password"
-                name="rePassword"
-                value={form.rePassword}
-                onChange={onChange}
-                minLength={6}
-                required
-              />
-            </div>
+
+            {!editingUser && (
+              <>
+                <div className="field">
+                  <label>Password</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={form.password}
+                    onChange={onChange}
+                    minLength={6}
+                    required
+                  />
+                </div>
+                <div className="field">
+                  <label>Re-Password</label>
+                  <input
+                    type="password"
+                    name="rePassword"
+                    value={form.rePassword}
+                    onChange={onChange}
+                    minLength={6}
+                    required
+                  />
+                </div>
+              </>
+            )}
 
             <div className="actions">
               <button type="submit" disabled={loading}>
-                {loading ? "Creating..." : "Create Manager"}
+                {loading
+                  ? editingUser
+                    ? "Updating..."
+                    : "Creating..."
+                  : editingUser
+                  ? "Update Manager"
+                  : "Create Manager"}
               </button>
+              {editingUser && (
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => {
+                    setEditingUser(null);
+                    setForm({
+                      firstName: "",
+                      lastName: "",
+                      email: "",
+                      password: "",
+                      rePassword: "",
+                    });
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </form>
         </section>
@@ -186,7 +265,9 @@ function AdminLanding() {
               {users.length > 0 ? (
                 users.map((u) => (
                   <tr key={u._id}>
-                    <td>{u.firstName} {u.lastName}</td>
+                    <td>
+                      {u.firstName} {u.lastName}
+                    </td>
                     <td>{u.email}</td>
                     <td>
                       <span style={{ color: "green", fontWeight: "600" }}>
@@ -194,6 +275,12 @@ function AdminLanding() {
                       </span>
                     </td>
                     <td>
+                      <button
+                        className="btn-edit"
+                        onClick={() => handleEdit(u)}
+                      >
+                        Edit
+                      </button>
                       <button
                         className="btn-delete"
                         onClick={() => handleDelete(u._id)}
