@@ -39,6 +39,10 @@ router.post(
           ? "/admin"
           : user.role === ROLES.EMPLOYEE_MANAGER
           ? "/employee-manager"
+          : user.role === ROLES.INVENTORY_MANAGER
+          ? "/inventory-manager"
+          : user.role === ROLES.SUPPLIER_MANAGER
+          ? "/supplier-manager"
           : "/",
       user: {
         id: user._id,

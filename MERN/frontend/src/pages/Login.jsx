@@ -22,18 +22,21 @@ function Login() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        // Navigate by role
-        const role = data.user.role;
+        // 🔑 Normalize role (lowercase, remove special chars)
+        const role = data.user.role?.toLowerCase();
+
         if (role === "admin") {
           window.location.href = "/admin";
-        } else if (role === "employeeManager") {
+        } else if (role === "employeemanager") {
           window.location.href = "/employee-manager";
-        } else if (role === "inventoryManager") {
+        } else if (role === "inventorymanager") {
           window.location.href = "/inventory-manager";
-        } else if (role === "supplierManager") {
+        } else if (role === "suppliermanager") {
           window.location.href = "/supplier-manager";
+        } else if (role === "employee") {
+          window.location.href = "/employee";
         } else {
-          window.location.href = "/";
+          setError("Role not recognized");
         }
       } else {
         setError(data.message || "Login failed");

@@ -57,14 +57,12 @@ router.post(
       const exist = await User.findOne({ email });
       if (exist) return res.status(400).json({ message: "Email already exists" });
 
-      // hash password
-      const hashed = await bcrypt.hash(password, 10);
-
+      // Do not pre-hash here; the User schema pre-save hook will hash the password
       const user = await User.create({
         firstName,
         lastName,
         email,
-        password: hashed,
+        password,
         role,
       });
 

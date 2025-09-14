@@ -1,0 +1,68 @@
+/* src/styles/pages/inventoryManager.css */
+.inv-wrap {
+  padding: 20px;
+}
+
+.inv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.inv-header h1 {
+  font-size: 24px;
+}
+
+.logout-btn {
+  background: crimson;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.card {
+  background: #fff;
+  margin: 20px 0;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.ok {
+  color: green;
+  margin-bottom: 10px;
+}
+
+.error {
+  color: red;
+  margin-bottom: 10px;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+.btn-edit {
+  background: #2196f3;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  margin-right: 4px;
+  cursor: pointer;
+}
+
+.btn-delete {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+}
