@@ -1,6 +1,7 @@
+// src/pages/Login.jsx
 import { useState } from "react";
-import { loginUser } from "../services/api";   // api.js එකේ function එක
-import "../styles/pages/login.css";            // CSS file එක
+import { loginUser } from "../services/api";
+import "../styles/pages/login.css";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -17,15 +18,20 @@ function Login() {
       const data = await loginUser(email, password);
 
       if (data.token) {
-        // 🟢 Save token + user details
+        // Save token + user details
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        // 🟢 Navigate based on landing path
-        if (data.landing === "/admin") {
+        // Navigate by role
+        const role = data.user.role;
+        if (role === "admin") {
           window.location.href = "/admin";
-        } else if (data.landing === "/employee-manager") {
+        } else if (role === "employeeManager") {
           window.location.href = "/employee-manager";
+        } else if (role === "inventoryManager") {
+          window.location.href = "/inventory-manager";
+        } else if (role === "supplierManager") {
+          window.location.href = "/supplier-manager";
         } else {
           window.location.href = "/";
         }

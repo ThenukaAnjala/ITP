@@ -1,30 +1,31 @@
+// models/User.js
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 export const ROLES = {
-  ADMIN: "ADMIN",
-  EMPLOYEE_MANAGER: "EMPLOYEE_MANAGER",
-  INVENTORY_MANAGER: "INVENTORY_MANAGER",
-  RUBBER_TAPPER: "RUBBER_TAPPER",
+  ADMIN: "admin",
+  EMPLOYEE_MANAGER: "employeeManager",
+  EMPLOYEE: "employee",
+  INVENTORY_MANAGER: "inventoryManager",
+  SUPPLIER_MANAGER: "supplierManager",
 };
 
 const userSchema = new mongoose.Schema(
   {
-    firstName: { type: String, required: true, trim: true },
-    lastName: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true },
-    password: { type: String, required: true, minlength: 6 },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
     role: {
       type: String,
       enum: Object.values(ROLES),
-      default: ROLES.RUBBER_TAPPER,
+      default: ROLES.EMPLOYEE,
     },
-    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 
-// hash password
+// hash password before save
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);

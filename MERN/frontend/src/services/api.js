@@ -1,10 +1,17 @@
-// 🔐 Login user (Admin, Manager, etc.)
+// src/services/api.js
+
+// 🔐 Login user
 export const loginUser = async (email, password) => {
   const res = await fetch("http://localhost:5000/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
+
+  if (!res.ok) {
+    throw new Error("Login failed");
+  }
+
   return res.json();
 };
 
@@ -15,14 +22,28 @@ export const registerEmployeeManager = async (payload) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // admin token required
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(payload),
   });
   return res.json();
 };
 
-// 🔹 Get all users (Admin / Employee Manager only)
+// 🔹 Generic Register User
+export const registerUser = async (payload) => {
+  const token = localStorage.getItem("token");
+  const res = await fetch("http://localhost:5000/api/users", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+};
+
+// 🔹 Get all users
 export const getUsers = async () => {
   const token = localStorage.getItem("token");
   const res = await fetch("http://localhost:5000/api/users", {
@@ -34,6 +55,7 @@ export const getUsers = async () => {
   return res.json();
 };
 
+// 🔹 Delete user
 export const deleteUser = async (id) => {
   const token = localStorage.getItem("token");
   const res = await fetch(`http://localhost:5000/api/users/${id}`, {
@@ -45,7 +67,7 @@ export const deleteUser = async (id) => {
   return res.json();
 };
 
-// update user
+// 🔹 Update user
 export const updateUser = async (id, payload) => {
   const token = localStorage.getItem("token");
   const res = await fetch(`http://localhost:5000/api/users/${id}`, {

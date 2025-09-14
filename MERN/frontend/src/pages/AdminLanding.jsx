@@ -41,7 +41,8 @@ function AdminLanding() {
     try {
       const data = await getUsers();
       if (Array.isArray(data)) {
-        const managers = data.filter((u) => u.role === "EMPLOYEE_MANAGER");
+        // ✅ Only employee managers
+        const managers = data.filter((u) => u.role === "employeeManager");
         setUsers(managers);
       }
     } catch (err) {
@@ -226,30 +227,28 @@ function AdminLanding() {
                   <tr key={u._id}>
                     <td>
                       {editingUser === u._id ? (
-                        <input
-                          value={editForm.firstName}
-                          onChange={(e) =>
-                            setEditForm((f) => ({
-                              ...f,
-                              firstName: e.target.value,
-                            }))
-                          }
-                        />
+                        <>
+                          <input
+                            value={editForm.firstName}
+                            onChange={(e) =>
+                              setEditForm((f) => ({
+                                ...f,
+                                firstName: e.target.value,
+                              }))
+                            }
+                          />
+                          <input
+                            value={editForm.lastName}
+                            onChange={(e) =>
+                              setEditForm((f) => ({
+                                ...f,
+                                lastName: e.target.value,
+                              }))
+                            }
+                          />
+                        </>
                       ) : (
-                        u.firstName
-                      )}{" "}
-                      {editingUser === u._id ? (
-                        <input
-                          value={editForm.lastName}
-                          onChange={(e) =>
-                            setEditForm((f) => ({
-                              ...f,
-                              lastName: e.target.value,
-                            }))
-                          }
-                        />
-                      ) : (
-                        u.lastName
+                        `${u.firstName} ${u.lastName}`
                       )}
                     </td>
                     <td>
