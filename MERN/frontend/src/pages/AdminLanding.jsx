@@ -20,9 +20,14 @@ function AdminLanding() {
   const [loading, setLoading] = useState(false);
   const [adminName, setAdminName] = useState("");
   const [users, setUsers] = useState([]);
-  const [editingUser, setEditingUser] = useState(null); // 🟢 store user being edited
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+  });
 
-  // load admin + users
+  // load admin name + users
   useEffect(() => {
     const userStr = localStorage.getItem("user");
     if (userStr) {
@@ -36,10 +41,11 @@ function AdminLanding() {
     try {
       const data = await getUsers();
       if (Array.isArray(data)) {
-        setUsers(data);
+        const managers = data.filter((u) => u.role === "EMPLOYEE_MANAGER");
+        setUsers(managers);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load users:", err);
     }
   };
 
@@ -58,34 +64,6 @@ function AdminLanding() {
     setMsg("");
     setErr("");
 
-    // 🟢 If editing, call update
-    if (editingUser) {
-      setLoading(true);
-      const updated = await updateUser(editingUser._id, {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-      });
-      setLoading(false);
-
-      if (updated && updated._id) {
-        setMsg(`✅ Updated: ${updated.firstName} ${updated.lastName}`);
-        setEditingUser(null);
-        setForm({
-          firstName: "",
-          lastName: "",
-          email: "",
-          password: "",
-          rePassword: "",
-        });
-        loadUsers();
-      } else {
-        setErr(updated?.message || "Failed to update user");
-      }
-      return;
-    }
-
-    // 🟢 Else, register new Employee Manager
     if (form.password !== form.rePassword) {
       setErr("Passwords do not match");
       return;
@@ -112,24 +90,38 @@ function AdminLanding() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this manager?")) return;
-    try {
-      await deleteUser(id);
-      loadUsers(); // refresh list after delete
-    } catch (err) {
-      console.error(err);
+    const res = await deleteUser(id);
+    if (res?.message) {
+      setMsg(res.message);
+      loadUsers();
+    } else {
+      setErr("Failed to delete user");
     }
   };
 
-  const handleEdit = (u) => {
-    setEditingUser(u);
-    setForm({
-      firstName: u.firstName,
-      lastName: u.lastName,
-      email: u.email,
-      password: "",
-      rePassword: "",
+  const startEdit = (user) => {
+    setEditingUser(user._id);
+    setEditForm({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
     });
-    window.scrollTo({ top: 0, behavior: "smooth" }); // scroll form to top
+  };
+
+  const cancelEdit = () => {
+    setEditingUser(null);
+    setEditForm({ firstName: "", lastName: "", email: "" });
+  };
+
+  const saveEdit = async (id) => {
+    const res = await updateUser(id, editForm);
+    if (res?._id) {
+      setMsg("✅ User updated successfully");
+      setEditingUser(null);
+      loadUsers();
+    } else {
+      setErr(res?.message || "Failed to update user");
+    }
   };
 
   return (
@@ -146,15 +138,11 @@ function AdminLanding() {
 
       {/* Main grid */}
       <div className="admin-grid">
-        {/* Register / Edit Form */}
+        {/* Register Form */}
         <section className="card">
-          <h2>
-            {editingUser ? "✏️ Edit Employee Manager" : "Register Employee Manager"}
-          </h2>
+          <h2>Register Employee Manager</h2>
           <p className="hint">
-            {editingUser
-              ? "Update details of the selected Employee Manager."
-              : "Fill the form to add a new Employee Manager for the project."}
+            Fill the form to add a new Employee Manager for the project.
           </p>
 
           {msg && <div className="ok">{msg}</div>}
@@ -189,62 +177,33 @@ function AdminLanding() {
                 required
               />
             </div>
-
-            {!editingUser && (
-              <>
-                <div className="field">
-                  <label>Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={form.password}
-                    onChange={onChange}
-                    minLength={6}
-                    required
-                  />
-                </div>
-                <div className="field">
-                  <label>Re-Password</label>
-                  <input
-                    type="password"
-                    name="rePassword"
-                    value={form.rePassword}
-                    onChange={onChange}
-                    minLength={6}
-                    required
-                  />
-                </div>
-              </>
-            )}
+            <div className="field">
+              <label>Password</label>
+              <input
+                type="password"
+                name="password"
+                value={form.password}
+                onChange={onChange}
+                minLength={6}
+                required
+              />
+            </div>
+            <div className="field">
+              <label>Re-Password</label>
+              <input
+                type="password"
+                name="rePassword"
+                value={form.rePassword}
+                onChange={onChange}
+                minLength={6}
+                required
+              />
+            </div>
 
             <div className="actions">
               <button type="submit" disabled={loading}>
-                {loading
-                  ? editingUser
-                    ? "Updating..."
-                    : "Creating..."
-                  : editingUser
-                  ? "Update Manager"
-                  : "Create Manager"}
+                {loading ? "Creating..." : "Create Manager"}
               </button>
-              {editingUser && (
-                <button
-                  type="button"
-                  className="btn-cancel"
-                  onClick={() => {
-                    setEditingUser(null);
-                    setForm({
-                      firstName: "",
-                      lastName: "",
-                      email: "",
-                      password: "",
-                      rePassword: "",
-                    });
-                  }}
-                >
-                  Cancel
-                </button>
-              )}
             </div>
           </form>
         </section>
@@ -258,7 +217,7 @@ function AdminLanding() {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Status</th>
-                <th>Action</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -266,33 +225,88 @@ function AdminLanding() {
                 users.map((u) => (
                   <tr key={u._id}>
                     <td>
-                      {u.firstName} {u.lastName}
+                      {editingUser === u._id ? (
+                        <input
+                          value={editForm.firstName}
+                          onChange={(e) =>
+                            setEditForm((f) => ({
+                              ...f,
+                              firstName: e.target.value,
+                            }))
+                          }
+                        />
+                      ) : (
+                        u.firstName
+                      )}{" "}
+                      {editingUser === u._id ? (
+                        <input
+                          value={editForm.lastName}
+                          onChange={(e) =>
+                            setEditForm((f) => ({
+                              ...f,
+                              lastName: e.target.value,
+                            }))
+                          }
+                        />
+                      ) : (
+                        u.lastName
+                      )}
                     </td>
-                    <td>{u.email}</td>
+                    <td>
+                      {editingUser === u._id ? (
+                        <input
+                          value={editForm.email}
+                          onChange={(e) =>
+                            setEditForm((f) => ({
+                              ...f,
+                              email: e.target.value,
+                            }))
+                          }
+                        />
+                      ) : (
+                        u.email
+                      )}
+                    </td>
                     <td>
                       <span style={{ color: "green", fontWeight: "600" }}>
-                        ✅ {u.isActive ? "Active" : "Inactive"}
+                        ✅ Active
                       </span>
                     </td>
                     <td>
-                      <button
-                        className="btn-edit"
-                        onClick={() => handleEdit(u)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn-delete"
-                        onClick={() => handleDelete(u._id)}
-                      >
-                        Delete
-                      </button>
+                      {editingUser === u._id ? (
+                        <>
+                          <button
+                            className="btn-edit"
+                            onClick={() => saveEdit(u._id)}
+                          >
+                            Save
+                          </button>
+                          <button className="btn-cancel" onClick={cancelEdit}>
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="btn-edit"
+                            onClick={() => startEdit(u)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="btn-delete"
+                            onClick={() => handleDelete(u._id)}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4">No managers found</td>
+                  <td colSpan="4">No Employee Managers found</td>
                 </tr>
               )}
             </tbody>
