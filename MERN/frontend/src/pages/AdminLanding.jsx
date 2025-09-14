@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { registerEmployeeManager, getUsers } from "../services/api";
+import { registerEmployeeManager, getUsers, deleteUser } from "../services/api";
 import "../styles/pages/admin.css";
 
 function AdminLanding() {
@@ -16,7 +16,7 @@ function AdminLanding() {
   const [adminName, setAdminName] = useState("");
   const [users, setUsers] = useState([]);
 
-  // load admin name from localStorage
+  // load admin + users
   useEffect(() => {
     const userStr = localStorage.getItem("user");
     if (userStr) {
@@ -73,6 +73,16 @@ function AdminLanding() {
       loadUsers();
     } else {
       setErr(data?.message || "Failed to register manager");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this manager?")) return;
+    try {
+      await deleteUser(id);
+      loadUsers(); // refresh list after delete
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -169,24 +179,33 @@ function AdminLanding() {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {users.length > 0 ? (
                 users.map((u) => (
-                  <tr key={u.id}>
+                  <tr key={u._id}>
                     <td>{u.firstName} {u.lastName}</td>
                     <td>{u.email}</td>
                     <td>
                       <span style={{ color: "green", fontWeight: "600" }}>
-                        ✅ Active
+                        ✅ {u.isActive ? "Active" : "Inactive"}
                       </span>
+                    </td>
+                    <td>
+                      <button
+                        className="btn-delete"
+                        onClick={() => handleDelete(u._id)}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="3">No managers found</td>
+                  <td colSpan="4">No managers found</td>
                 </tr>
               )}
             </tbody>
