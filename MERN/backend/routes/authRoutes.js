@@ -19,11 +19,13 @@ router.post(
   [body("email").isEmail(), body("password").isString().isLength({ min: 1 })],
   async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty())
+    if (!errors.isEmpty()) {
       return res.status(400).json({ message: "Invalid input" });
+    }
 
     const { email, password } = req.body;
     const user = await User.findOne({ email });
+
     if (!user || !(await user.matchPassword(password))) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -32,6 +34,12 @@ router.post(
 
     res.json({
       token,
+      landing:
+        user.role === ROLES.ADMIN
+          ? "/admin"
+          : user.role === ROLES.EMPLOYEE_MANAGER
+          ? "/employee-manager"
+          : "/",
       user: {
         id: user._id,
         firstName: user.firstName,
@@ -57,13 +65,16 @@ router.post(
   ],
   async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty())
+    if (!errors.isEmpty()) {
       return res.status(400).json({ message: "Invalid input" });
+    }
 
     const { firstName, lastName, email, password } = req.body;
 
     const exists = await User.findOne({ email });
-    if (exists) return res.status(409).json({ message: "Email already used" });
+    if (exists) {
+      return res.status(409).json({ message: "Email already used" });
+    }
 
     const created = await User.create({
       firstName,
@@ -83,7 +94,7 @@ router.post(
   }
 );
 
-// ⚠️ TEMPORARY: Register the first Admin (use once, then REMOVE)
+// ⚠️ TEMPORARY: Register the first Admin (remove later)
 router.post(
   "/register-admin",
   [
@@ -94,13 +105,16 @@ router.post(
   ],
   async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty())
+    if (!errors.isEmpty()) {
       return res.status(400).json({ message: "Invalid input" });
+    }
 
     const { firstName, lastName, email, password } = req.body;
 
     const exists = await User.findOne({ email });
-    if (exists) return res.status(409).json({ message: "Email already used" });
+    if (exists) {
+      return res.status(409).json({ message: "Email already used" });
+    }
 
     const created = await User.create({
       firstName,

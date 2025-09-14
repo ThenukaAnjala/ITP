@@ -8,11 +8,13 @@ export const loginUser = async (email, password) => {
     body: JSON.stringify({ email, password }),
   });
 
+  const data = await res.json();
+
   if (!res.ok) {
-    throw new Error("Login failed");
+    throw new Error(data.message || "Login failed");
   }
 
-  return res.json();
+  return data;
 };
 
 // 🔐 Register Employee Manager (Admin only)
@@ -26,6 +28,7 @@ export const registerEmployeeManager = async (payload) => {
     },
     body: JSON.stringify(payload),
   });
+
   return res.json();
 };
 
@@ -40,6 +43,7 @@ export const registerUser = async (payload) => {
     },
     body: JSON.stringify(payload),
   });
+
   return res.json();
 };
 
@@ -52,6 +56,7 @@ export const getUsers = async () => {
       Authorization: `Bearer ${token}`,
     },
   });
+
   return res.json();
 };
 
@@ -64,6 +69,7 @@ export const deleteUser = async (id) => {
       Authorization: `Bearer ${token}`,
     },
   });
+
   return res.json();
 };
 
@@ -78,5 +84,6 @@ export const updateUser = async (id, payload) => {
     },
     body: JSON.stringify(payload),
   });
+
   return res.json();
 };
