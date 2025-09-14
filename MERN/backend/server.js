@@ -5,8 +5,6 @@ import cors from "cors";
 
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
-
-// ✅ New imports for Inventory Management
 import itemRoutes from "./routes/itemRoutes.js";
 import grnRoutes from "./routes/grnRoutes.js";
 
@@ -19,11 +17,9 @@ app.use(express.json());
 // health check
 app.get("/", (_req, res) => res.send("✅ MERN Backend API is running..."));
 
-// wire routes
+// routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-
-// ✅ Inventory management endpoints
 app.use("/api/items", itemRoutes);
 app.use("/api/grns", grnRoutes);
 

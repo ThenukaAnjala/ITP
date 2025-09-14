@@ -1,4 +1,3 @@
-// src/pages/InventoryManagerLanding.jsx
 import React, { useState, useEffect } from "react";
 import { getItems, createItem, getGrns, createGrn } from "../services/inventoryApi";
 import "../styles/pages/inventoryManager.css";
@@ -13,6 +12,11 @@ function InventoryManagerLanding() {
     standard_cost: "",
     uom: "KG",
   });
+  const [grnForm, setGrnForm] = useState({
+    grn_no: "",
+    supplier: { name: "", email: "" },
+    status: "DRAFT",
+  });
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
@@ -21,21 +25,13 @@ function InventoryManagerLanding() {
   }, []);
 
   const loadItems = async () => {
-    try {
-      const data = await getItems();
-      setItems(data || []);
-    } catch (err) {
-      console.error("Failed to load items:", err);
-    }
+    const data = await getItems();
+    setItems(data || []);
   };
 
   const loadGrns = async () => {
-    try {
-      const data = await getGrns();
-      setGrns(data || []);
-    } catch (err) {
-      console.error("Failed to load GRNs:", err);
-    }
+    const data = await getGrns();
+    setGrns(data || []);
   };
 
   const handleLogout = () => {
@@ -44,9 +40,9 @@ function InventoryManagerLanding() {
     window.location.href = "/";
   };
 
-  const onChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-  };
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const onGrnChange = (e) =>
+    setGrnForm({ ...grnForm, [e.target.name]: e.target.value });
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -60,6 +56,18 @@ function InventoryManagerLanding() {
     }
   };
 
+  const onGrnSubmit = async (e) => {
+    e.preventDefault();
+    const res = await createGrn(grnForm);
+    if (res?._id) {
+      setMsg("✅ GRN created successfully");
+      setGrnForm({ grn_no: "", supplier: { name: "", email: "" }, status: "DRAFT" });
+      loadGrns();
+    } else {
+      setMsg(res?.message || "Failed to create GRN");
+    }
+  };
+
   return (
     <div className="inv-wrap">
       <header className="inv-header">
@@ -69,25 +77,13 @@ function InventoryManagerLanding() {
         </button>
       </header>
 
-      {/* Register new item */}
+      {/* Add Item */}
       <section className="card">
         <h2>Add New Item</h2>
         {msg && <div className="info">{msg}</div>}
         <form className="grid" onSubmit={onSubmit}>
-          <input
-            name="item_code"
-            placeholder="Item Code"
-            value={form.item_code}
-            onChange={onChange}
-            required
-          />
-          <input
-            name="name"
-            placeholder="Item Name"
-            value={form.name}
-            onChange={onChange}
-            required
-          />
+          <input name="item_code" placeholder="Item Code" value={form.item_code} onChange={onChange} required />
+          <input name="name" placeholder="Item Name" value={form.name} onChange={onChange} required />
           <select name="item_type" value={form.item_type} onChange={onChange}>
             <option value="RAW">RAW</option>
             <option value="WIP">WIP</option>
@@ -95,24 +91,13 @@ function InventoryManagerLanding() {
             <option value="MRO">MRO</option>
             <option value="PACKAGING">Packaging</option>
           </select>
-          <input
-            name="standard_cost"
-            type="number"
-            placeholder="Cost"
-            value={form.standard_cost}
-            onChange={onChange}
-          />
-          <input
-            name="uom"
-            placeholder="Unit (e.g., KG, PCS)"
-            value={form.uom}
-            onChange={onChange}
-          />
+          <input name="standard_cost" type="number" placeholder="Cost" value={form.standard_cost} onChange={onChange} />
+          <input name="uom" placeholder="Unit (e.g., KG, PCS)" value={form.uom} onChange={onChange} />
           <button type="submit">Add Item</button>
         </form>
       </section>
 
-      {/* Items list */}
+      {/* Items */}
       <section className="card">
         <h2>Items Master</h2>
         <table className="users-table">
@@ -145,9 +130,20 @@ function InventoryManagerLanding() {
         </table>
       </section>
 
-      {/* GRN list */}
+      {/* GRNs */}
       <section className="card">
         <h2>Recent GRNs</h2>
+        <form onSubmit={onGrnSubmit} className="grid">
+          <input name="grn_no" placeholder="GRN Number" value={grnForm.grn_no} onChange={onGrnChange} required />
+          <input name="supplier.name" placeholder="Supplier Name" value={grnForm.supplier.name} onChange={(e) => setGrnForm({...grnForm, supplier: {...grnForm.supplier, name: e.target.value}})} required />
+          <input name="supplier.email" placeholder="Supplier Email" value={grnForm.supplier.email} onChange={(e) => setGrnForm({...grnForm, supplier: {...grnForm.supplier, email: e.target.value}})} required />
+          <select name="status" value={grnForm.status} onChange={onGrnChange}>
+            <option value="DRAFT">DRAFT</option>
+            <option value="POSTED">POSTED</option>
+          </select>
+          <button type="submit">Add GRN</button>
+        </form>
+
         <table className="users-table">
           <thead>
             <tr>
