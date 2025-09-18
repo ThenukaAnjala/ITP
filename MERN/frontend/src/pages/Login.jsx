@@ -34,7 +34,7 @@ function Login() {
         } else if (role === "suppliermanager") {
           window.location.href = "/supplier-manager";
         } else if (role === "employee") {
-          window.location.href = "/employee";
+          window.location.href = "/rubber-tapper";
         } else {
           setError("Role not recognized");
         }
