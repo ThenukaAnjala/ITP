@@ -53,37 +53,31 @@ function InventoryManagerLanding() {
     window.location.href = "/";
   };
 
+  // ---------------- Item handlers ----------------
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  const onGrnChange = (e) =>
-    setGrnForm({ ...grnForm, [e.target.name]: e.target.value });
 
-  // ➕ Create Item
   const onSubmit = async (e) => {
     e.preventDefault();
-    const res = await createItem(form);
-    if (res?._id) {
-      setMsg("✅ Item created successfully");
-      setForm({ item_code: "", name: "", item_type: "RAW", standard_cost: "", uom: "KG" });
-      loadItems();
+    if (editItemId) {
+      // ✏️ Update
+      const res = await updateItem(editItemId, form);
+      if (res?._id) {
+        setMsg("✅ Item updated successfully");
+        setEditItemId(null);
+        setForm({ item_code: "", name: "", item_type: "RAW", standard_cost: "", uom: "KG" });
+        loadItems();
+      } else setMsg("Failed to update item");
     } else {
-      setMsg(res?.message || "Failed to create item");
+      // ➕ Create
+      const res = await createItem(form);
+      if (res?._id) {
+        setMsg("✅ Item created successfully");
+        setForm({ item_code: "", name: "", item_type: "RAW", standard_cost: "", uom: "KG" });
+        loadItems();
+      } else setMsg(res?.message || "Failed to create item");
     }
   };
 
-  // ➕ Create GRN
-  const onGrnSubmit = async (e) => {
-    e.preventDefault();
-    const res = await createGrn(grnForm);
-    if (res?._id) {
-      setMsg("✅ GRN created successfully");
-      setGrnForm({ grn_no: "", supplier: { name: "", email: "" }, status: "DRAFT" });
-      loadGrns();
-    } else {
-      setMsg(res?.message || "Failed to create GRN");
-    }
-  };
-
-  // ❌ Delete Item
   const handleDeleteItem = async (id) => {
     if (!window.confirm("Are you sure you want to delete this Item?")) return;
     const res = await deleteItem(id);
@@ -91,7 +85,41 @@ function InventoryManagerLanding() {
     loadItems();
   };
 
-  // ❌ Delete GRN
+  const handleEditItem = (item) => {
+    setEditItemId(item._id);
+    setForm({
+      item_code: item.item_code,
+      name: item.name,
+      item_type: item.item_type,
+      standard_cost: item.standard_cost,
+      uom: item.uom,
+    });
+  };
+
+  // ---------------- GRN handlers ----------------
+  const onGrnChange = (e) =>
+    setGrnForm({ ...grnForm, [e.target.name]: e.target.value });
+
+  const onGrnSubmit = async (e) => {
+    e.preventDefault();
+    if (editGrnId) {
+      const res = await updateGrn(editGrnId, grnForm);
+      if (res?._id) {
+        setMsg("✅ GRN updated successfully");
+        setEditGrnId(null);
+        setGrnForm({ grn_no: "", supplier: { name: "", email: "" }, status: "DRAFT" });
+        loadGrns();
+      } else setMsg("Failed to update GRN");
+    } else {
+      const res = await createGrn(grnForm);
+      if (res?._id) {
+        setMsg("✅ GRN created successfully");
+        setGrnForm({ grn_no: "", supplier: { name: "", email: "" }, status: "DRAFT" });
+        loadGrns();
+      } else setMsg(res?.message || "Failed to create GRN");
+    }
+  };
+
   const handleDeleteGrn = async (id) => {
     if (!window.confirm("Are you sure you want to delete this GRN?")) return;
     const res = await deleteGrn(id);
@@ -99,28 +127,13 @@ function InventoryManagerLanding() {
     loadGrns();
   };
 
-  // ✏️ Save Edited Item
-  const handleSaveItem = async (id, updated) => {
-    const res = await updateItem(id, updated);
-    if (res?._id) {
-      setMsg("✅ Item updated successfully");
-      setEditItemId(null);
-      loadItems();
-    } else {
-      setMsg("Failed to update item");
-    }
-  };
-
-  // ✏️ Save Edited GRN
-  const handleSaveGrn = async (id, updated) => {
-    const res = await updateGrn(id, updated);
-    if (res?._id) {
-      setMsg("✅ GRN updated successfully");
-      setEditGrnId(null);
-      loadGrns();
-    } else {
-      setMsg("Failed to update GRN");
-    }
+  const handleEditGrn = (grn) => {
+    setEditGrnId(grn._id);
+    setGrnForm({
+      grn_no: grn.grn_no,
+      supplier: { name: grn.supplier?.name || "", email: grn.supplier?.email || "" },
+      status: grn.status,
+    });
   };
 
   return (
@@ -132,9 +145,9 @@ function InventoryManagerLanding() {
         </button>
       </header>
 
-      {/* Add Item */}
+      {/* Add / Edit Item */}
       <section className="card">
-        <h2>Add New Item</h2>
+        <h2>{editItemId ? "Edit Item" : "Add New Item"}</h2>
         {msg && <div className="info">{msg}</div>}
         <form className="grid" onSubmit={onSubmit}>
           <input name="item_code" placeholder="Item Code" value={form.item_code} onChange={onChange} required />
@@ -148,7 +161,7 @@ function InventoryManagerLanding() {
           </select>
           <input name="standard_cost" type="number" placeholder="Cost" value={form.standard_cost} onChange={onChange} />
           <input name="uom" placeholder="Unit (e.g., KG, PCS)" value={form.uom} onChange={onChange} />
-          <button type="submit">Add Item</button>
+          <button type="submit">{editItemId ? "Update Item" : "Add Item"}</button>
         </form>
       </section>
 
@@ -176,7 +189,7 @@ function InventoryManagerLanding() {
                   <td>{i.standard_cost}</td>
                   <td>{i.uom}</td>
                   <td>
-                    <button onClick={() => setEditItemId(i._id)}>Edit</button>
+                    <button onClick={() => handleEditItem(i)}>Edit</button>
                     <button onClick={() => handleDeleteItem(i._id)}>Delete</button>
                   </td>
                 </tr>
@@ -190,18 +203,20 @@ function InventoryManagerLanding() {
         </table>
       </section>
 
-      {/* GRNs */}
+      {/* Add / Edit GRN */}
       <section className="card">
-        <h2>Recent GRNs</h2>
+        <h2>{editGrnId ? "Edit GRN" : "Add GRN"}</h2>
         <form onSubmit={onGrnSubmit} className="grid">
           <input name="grn_no" placeholder="GRN Number" value={grnForm.grn_no} onChange={onGrnChange} required />
-          <input name="supplier.name" placeholder="Supplier Name" value={grnForm.supplier.name} onChange={(e) => setGrnForm({...grnForm, supplier: {...grnForm.supplier, name: e.target.value}})} required />
-          <input name="supplier.email" placeholder="Supplier Email" value={grnForm.supplier.email} onChange={(e) => setGrnForm({...grnForm, supplier: {...grnForm.supplier, email: e.target.value}})} required />
+          <input name="supplier.name" placeholder="Supplier Name" value={grnForm.supplier.name} 
+            onChange={(e) => setGrnForm({...grnForm, supplier: {...grnForm.supplier, name: e.target.value}})} required />
+          <input name="supplier.email" placeholder="Supplier Email" value={grnForm.supplier.email}
+            onChange={(e) => setGrnForm({...grnForm, supplier: {...grnForm.supplier, email: e.target.value}})} required />
           <select name="status" value={grnForm.status} onChange={onGrnChange}>
             <option value="DRAFT">DRAFT</option>
             <option value="POSTED">POSTED</option>
           </select>
-          <button type="submit">Add GRN</button>
+          <button type="submit">{editGrnId ? "Update GRN" : "Add GRN"}</button>
         </form>
 
         <table className="users-table">
@@ -220,10 +235,10 @@ function InventoryManagerLanding() {
                 <tr key={g._id}>
                   <td>{g.grn_no}</td>
                   <td>{g.supplier?.name}</td>
-                  <td>{new Date(g.grn_date).toLocaleDateString()}</td>
+                  <td>{g.grn_date ? new Date(g.grn_date).toLocaleDateString() : "-"}</td>
                   <td>{g.status}</td>
                   <td>
-                    <button onClick={() => setEditGrnId(g._id)}>Edit</button>
+                    <button onClick={() => handleEditGrn(g)}>Edit</button>
                     <button onClick={() => handleDeleteGrn(g._id)}>Delete</button>
                   </td>
                 </tr>

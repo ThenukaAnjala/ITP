@@ -1,15 +1,32 @@
 const API = "http://localhost:5000/api";
+
+// 🔑 Get token from localStorage safely
 const token = () => localStorage.getItem("token");
 
-const headers = () => ({
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${token()}`,
-});
+// 🛠️ Common headers with token (if exists)
+const headers = () => {
+  const t = token();
+  return t
+    ? {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${t}`,
+      }
+    : { "Content-Type": "application/json" };
+};
+
+// 🛠️ Helper: check fetch response
+const handleResponse = async (res) => {
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
+  return res.json();
+};
 
 // ---------------- Items ----------------
 export const getItems = async () => {
   const res = await fetch(`${API}/items`, { headers: headers() });
-  return res.json();
+  return handleResponse(res);
 };
 
 export const createItem = async (payload) => {
@@ -18,7 +35,7 @@ export const createItem = async (payload) => {
     headers: headers(),
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return handleResponse(res);
 };
 
 export const updateItem = async (id, payload) => {
@@ -27,7 +44,7 @@ export const updateItem = async (id, payload) => {
     headers: headers(),
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return handleResponse(res);
 };
 
 export const deleteItem = async (id) => {
@@ -35,13 +52,13 @@ export const deleteItem = async (id) => {
     method: "DELETE",
     headers: headers(),
   });
-  return res.json();
+  return handleResponse(res);
 };
 
 // ---------------- GRNs ----------------
 export const getGrns = async () => {
   const res = await fetch(`${API}/grns`, { headers: headers() });
-  return res.json();
+  return handleResponse(res);
 };
 
 export const createGrn = async (payload) => {
@@ -50,7 +67,7 @@ export const createGrn = async (payload) => {
     headers: headers(),
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return handleResponse(res);
 };
 
 export const updateGrn = async (id, payload) => {
@@ -59,7 +76,7 @@ export const updateGrn = async (id, payload) => {
     headers: headers(),
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return handleResponse(res);
 };
 
 export const deleteGrn = async (id) => {
@@ -67,5 +84,5 @@ export const deleteGrn = async (id) => {
     method: "DELETE",
     headers: headers(),
   });
-  return res.json();
+  return handleResponse(res);
 };
