@@ -90,7 +90,13 @@ export const deleteGrn = async (id) => {
 // ---------------- Tasks ----------------
 export const getTasks = async () => {
   const res = await fetch(`${API}/tasks`, { headers: headers() });
-  return res.json();
+  return handleResponse(res);
+};
+
+// ✅ Get logged-in Rubber Tapper’s tasks
+export const getMyTasks = async () => {
+  const res = await fetch(`${API}/tasks/my`, { headers: headers() });
+  return handleResponse(res);
 };
 
 export const createTask = async (payload) => {
@@ -99,7 +105,7 @@ export const createTask = async (payload) => {
     headers: headers(),
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return handleResponse(res);
 };
 
 export const updateTask = async (id, payload) => {
@@ -108,7 +114,7 @@ export const updateTask = async (id, payload) => {
     headers: headers(),
     body: JSON.stringify(payload),
   });
-  return res.json();
+  return handleResponse(res);
 };
 
 export const deleteTask = async (id) => {
@@ -116,5 +122,5 @@ export const deleteTask = async (id) => {
     method: "DELETE",
     headers: headers(),
   });
-  return res.json();
+  return handleResponse(res);
 };

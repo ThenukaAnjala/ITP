@@ -50,3 +50,13 @@ export const deleteTask = async (req, res) => {
     res.status(500).json({ message: "Failed to delete task" });
   }
 };
+
+// Get logged-in Rubber Tapper’s tasks
+export const getMyTasks = async (req, res) => {
+  try {
+    const tasks = await Task.find({ assignedTo: req.user.id }).populate("assignedTo", "firstName lastName");
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch your tasks" });
+  }
+};
