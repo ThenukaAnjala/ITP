@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { registerUser, getUsers, deleteUser, updateUser } from "../services/api";
+import {
+  registerUser,
+  getUsers,
+  deleteUser,
+  updateUser,
+} from "../services/api";
+import {
+  getTasks,
+  createTask,
+  deleteTask,
+  updateTask,
+} from "../services/inventoryApi"; // 👈 Task API
 import "../styles/pages/employeeManager.css";
 
 function EmployeeManagerLanding() {
@@ -9,13 +20,24 @@ function EmployeeManagerLanding() {
     email: "",
     password: "",
     rePassword: "",
-    role: "employee", // default rubber tapper
+    role: "employee", // default Rubber Tapper
   });
 
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
+
+  // ✅ Task state
+  const [tasks, setTasks] = useState([]);
+  const [taskForm, setTaskForm] = useState({
+    title: "",
+    description: "",
+    assignedTo: "",
+    dueDate: "",
+  });
+
+  // edit state
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({
     firstName: "",
@@ -25,13 +47,13 @@ function EmployeeManagerLanding() {
 
   useEffect(() => {
     loadUsers();
+    loadTasks();
   }, []);
 
   const loadUsers = async () => {
     try {
       const data = await getUsers();
       if (Array.isArray(data)) {
-        // Employee Manager sees only employees, inventory managers, supplier managers
         const filtered = data.filter(
           (u) =>
             u.role === "employee" ||
@@ -42,6 +64,15 @@ function EmployeeManagerLanding() {
       }
     } catch (err) {
       console.error("Failed to load users:", err);
+    }
+  };
+
+  const loadTasks = async () => {
+    try {
+      const data = await getTasks();
+      setTasks(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to load tasks:", err);
     }
   };
 
@@ -115,6 +146,26 @@ function EmployeeManagerLanding() {
     }
   };
 
+  // ✅ Task functions
+  const onTaskSubmit = async (e) => {
+    e.preventDefault();
+    const res = await createTask(taskForm);
+    if (res?._id) {
+      setMsg("✅ Task assigned successfully");
+      setTaskForm({ title: "", description: "", assignedTo: "", dueDate: "" });
+      loadTasks();
+    } else {
+      setErr(res?.message || "Failed to create task");
+    }
+  };
+
+  const handleDeleteTask = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+    const res = await deleteTask(id);
+    setMsg(res?.message || "Task deleted");
+    loadTasks();
+  };
+
   return (
     <div className="emp-wrap">
       <header className="emp-header">
@@ -135,7 +186,8 @@ function EmployeeManagerLanding() {
       <section className="card">
         <h2>Register User</h2>
         <p className="hint">
-          You can register Rubber Tappers, Inventory Managers, or Supplier Managers.
+          You can register Rubber Tappers, Inventory Managers, or Supplier
+          Managers.
         </p>
 
         {msg && <div className="ok">{msg}</div>}
@@ -304,6 +356,93 @@ function EmployeeManagerLanding() {
             ) : (
               <tr>
                 <td colSpan="4">No users found</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </section>
+
+      {/* ✅ Task Assignment for Rubber Tappers */}
+      <section className="card">
+        <h2>Assign Task to Rubber Tappers</h2>
+        <form className="grid" onSubmit={onTaskSubmit}>
+          <input
+            name="title"
+            placeholder="Task Title"
+            value={taskForm.title}
+            onChange={(e) =>
+              setTaskForm((f) => ({ ...f, title: e.target.value }))
+            }
+            required
+          />
+          <input
+            name="description"
+            placeholder="Description"
+            value={taskForm.description}
+            onChange={(e) =>
+              setTaskForm((f) => ({ ...f, description: e.target.value }))
+            }
+          />
+          <select
+            name="assignedTo"
+            value={taskForm.assignedTo}
+            onChange={(e) =>
+              setTaskForm((f) => ({ ...f, assignedTo: e.target.value }))
+            }
+            required
+          >
+            <option value="">-- Select Rubber Tapper --</option>
+            {users
+              .filter((u) => u.role === "employee")
+              .map((u) => (
+                <option key={u._id} value={u._id}>
+                  {u.firstName} {u.lastName}
+                </option>
+              ))}
+          </select>
+          <input
+            type="date"
+            name="dueDate"
+            value={taskForm.dueDate}
+            onChange={(e) =>
+              setTaskForm((f) => ({ ...f, dueDate: e.target.value }))
+            }
+          />
+          <button type="submit">Assign Task</button>
+        </form>
+
+        <table className="users-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Assigned To</th>
+              <th>Status</th>
+              <th>Due Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tasks.length > 0 ? (
+              tasks.map((t) => (
+                <tr key={t._id}>
+                  <td>{t.title}</td>
+                  <td>
+                    {t.assignedTo?.firstName} {t.assignedTo?.lastName}
+                  </td>
+                  <td>{t.status}</td>
+                  <td>
+                    {t.dueDate ? new Date(t.dueDate).toLocaleDateString() : "-"}
+                  </td>
+                  <td>
+                    <button onClick={() => handleDeleteTask(t._id)}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5">No tasks found</td>
               </tr>
             )}
           </tbody>

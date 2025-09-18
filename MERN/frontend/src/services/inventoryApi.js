@@ -86,3 +86,35 @@ export const deleteGrn = async (id) => {
   });
   return handleResponse(res);
 };
+
+// ---------------- Tasks ----------------
+export const getTasks = async () => {
+  const res = await fetch(`${API}/tasks`, { headers: headers() });
+  return res.json();
+};
+
+export const createTask = async (payload) => {
+  const res = await fetch(`${API}/tasks`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+};
+
+export const updateTask = async (id, payload) => {
+  const res = await fetch(`${API}/tasks/${id}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+};
+
+export const deleteTask = async (id) => {
+  const res = await fetch(`${API}/tasks/${id}`, {
+    method: "DELETE",
+    headers: headers(),
+  });
+  return res.json();
+};
