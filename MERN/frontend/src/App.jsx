@@ -6,7 +6,7 @@ import EmployeeManagerLanding from "./pages/EmployeeManagerLanding";
 import InventoryManagerLanding from "./pages/InventoryManagerLanding";
 import SupplierManagerLanding from "./pages/SupplierManagerLanding";
 import RubberTapper from "./pages/RubberTapper";
-
+import AssignTask from "./pages/AssignTask"; // 👈 new page import
 
 function App() {
   return (
@@ -18,6 +18,7 @@ function App() {
         <Route path="/inventory-manager" element={<InventoryManagerLanding />} />
         <Route path="/supplier-manager" element={<SupplierManagerLanding />} />
         <Route path="/rubber-tapper" element={<RubberTapper />} />
+        <Route path="/assign-task/:id" element={<AssignTask />} /> {/* 👈 new route */}
       </Routes>
     </Router>
   );

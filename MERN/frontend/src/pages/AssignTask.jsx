@@ -1,0 +1,200 @@
+// src/pages/AssignTask.jsx
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  getTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+} from "../services/inventoryApi";
+import { getUsers } from "../services/api";
+
+function AssignTask() {
+  const { id } = useParams(); // 👈 Rubber Tapper ID
+  const navigate = useNavigate();
+
+  const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [taskForm, setTaskForm] = useState({
+    title: "",
+    description: "",
+    assignedTo: id || "",
+    dueDate: "",
+    status: "PENDING",
+  });
+  const [editingTask, setEditingTask] = useState(null);
+  const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    loadUsers();
+    loadTasks();
+  }, []);
+
+  const loadUsers = async () => {
+    const data = await getUsers();
+    setUsers(data.filter((u) => u.role === "employee")); // only Rubber Tappers
+  };
+
+  const loadTasks = async () => {
+    const data = await getTasks();
+    // 🔑 Filter only tasks assigned to this Rubber Tapper
+    const filtered = Array.isArray(data)
+      ? data.filter((t) => t.assignedTo?._id === id)
+      : [];
+    setTasks(filtered);
+  };
+
+  // ➕ Add / Save Task
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    let res;
+    if (editingTask) {
+      res = await updateTask(editingTask, taskForm);
+      if (res?._id) setMsg("✅ Task updated successfully");
+    } else {
+      res = await createTask(taskForm);
+      if (res?._id) setMsg("✅ Task created successfully");
+    }
+
+    setTaskForm({
+      title: "",
+      description: "",
+      assignedTo: id || "",
+      dueDate: "",
+      status: "PENDING",
+    });
+    setEditingTask(null);
+    loadTasks();
+  };
+
+  // ✏️ Edit task
+  const handleEdit = (task) => {
+    setEditingTask(task._id);
+    setTaskForm({
+      title: task.title,
+      description: task.description,
+      assignedTo: task.assignedTo?._id || id,
+      dueDate: task.dueDate ? task.dueDate.split("T")[0] : "",
+      status: task.status,
+    });
+  };
+
+  // ❌ Delete task
+  const handleDelete = async (taskId) => {
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+    const res = await deleteTask(taskId);
+    setMsg(res?.message || "Task deleted");
+    loadTasks();
+  };
+
+  return (
+    <div className="emp-wrap">
+      <header className="emp-header">
+        <h1>Tasks for Rubber Tapper</h1>
+        <button className="logout-btn" onClick={() => navigate(-1)}>
+          🔙 Back
+        </button>
+      </header>
+
+      {msg && <div className="ok">{msg}</div>}
+
+      {/* Task Form */}
+      <section className="card">
+        <form className="grid" onSubmit={onSubmit}>
+          <input
+            name="title"
+            placeholder="Task Title"
+            value={taskForm.title}
+            onChange={(e) =>
+              setTaskForm((f) => ({ ...f, title: e.target.value }))
+            }
+            required
+          />
+          <input
+            name="description"
+            placeholder="Description"
+            value={taskForm.description}
+            onChange={(e) =>
+              setTaskForm((f) => ({ ...f, description: e.target.value }))
+            }
+          />
+          <select
+            name="assignedTo"
+            value={taskForm.assignedTo}
+            onChange={(e) =>
+              setTaskForm((f) => ({ ...f, assignedTo: e.target.value }))
+            }
+            required
+          >
+            <option value="">-- Select Rubber Tapper --</option>
+            {users.map((u) => (
+              <option key={u._id} value={u._id}>
+                {u.firstName} {u.lastName}
+              </option>
+            ))}
+          </select>
+          <input
+            type="date"
+            name="dueDate"
+            value={taskForm.dueDate}
+            onChange={(e) =>
+              setTaskForm((f) => ({ ...f, dueDate: e.target.value }))
+            }
+          />
+          <select
+            name="status"
+            value={taskForm.status}
+            onChange={(e) =>
+              setTaskForm((f) => ({ ...f, status: e.target.value }))
+            }
+          >
+            <option value="PENDING">PENDING</option>
+            <option value="IN_PROGRESS">IN PROGRESS</option>
+            <option value="COMPLETED">COMPLETED</option>
+          </select>
+          <button type="submit">
+            {editingTask ? "Update Task" : "Assign Task"}
+          </button>
+        </form>
+      </section>
+
+      {/* Task List */}
+      <section className="card">
+        <h2>My Tasks</h2>
+        <table className="users-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Due Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tasks.length > 0 ? (
+              tasks.map((t) => (
+                <tr key={t._id}>
+                  <td>{t.title}</td>
+                  <td>{t.status}</td>
+                  <td>
+                    {t.dueDate ? new Date(t.dueDate).toLocaleDateString() : "-"}
+                  </td>
+                  <td>
+                    <button onClick={() => handleEdit(t)}>Edit</button>
+                    <button onClick={() => handleDelete(t._id)}>Delete</button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="4">No tasks found</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </section>
+    </div>
+  );
+}
+
+export default AssignTask;
