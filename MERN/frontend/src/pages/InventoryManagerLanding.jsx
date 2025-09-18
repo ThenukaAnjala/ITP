@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { getItems, createItem, getGrns, createGrn } from "../services/inventoryApi";
+import {
+  getItems,
+  createItem,
+  getGrns,
+  createGrn,
+  deleteItem,
+  updateItem,
+  deleteGrn,
+  updateGrn,
+} from "../services/inventoryApi";
 import "../styles/pages/inventoryManager.css";
 
 function InventoryManagerLanding() {
@@ -18,6 +27,10 @@ function InventoryManagerLanding() {
     status: "DRAFT",
   });
   const [msg, setMsg] = useState("");
+
+  // ✏️ Track edit mode
+  const [editItemId, setEditItemId] = useState(null);
+  const [editGrnId, setEditGrnId] = useState(null);
 
   useEffect(() => {
     loadItems();
@@ -44,6 +57,7 @@ function InventoryManagerLanding() {
   const onGrnChange = (e) =>
     setGrnForm({ ...grnForm, [e.target.name]: e.target.value });
 
+  // ➕ Create Item
   const onSubmit = async (e) => {
     e.preventDefault();
     const res = await createItem(form);
@@ -56,6 +70,7 @@ function InventoryManagerLanding() {
     }
   };
 
+  // ➕ Create GRN
   const onGrnSubmit = async (e) => {
     e.preventDefault();
     const res = await createGrn(grnForm);
@@ -65,6 +80,46 @@ function InventoryManagerLanding() {
       loadGrns();
     } else {
       setMsg(res?.message || "Failed to create GRN");
+    }
+  };
+
+  // ❌ Delete Item
+  const handleDeleteItem = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this Item?")) return;
+    const res = await deleteItem(id);
+    setMsg(res?.message || "Item deleted");
+    loadItems();
+  };
+
+  // ❌ Delete GRN
+  const handleDeleteGrn = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this GRN?")) return;
+    const res = await deleteGrn(id);
+    setMsg(res?.message || "GRN deleted");
+    loadGrns();
+  };
+
+  // ✏️ Save Edited Item
+  const handleSaveItem = async (id, updated) => {
+    const res = await updateItem(id, updated);
+    if (res?._id) {
+      setMsg("✅ Item updated successfully");
+      setEditItemId(null);
+      loadItems();
+    } else {
+      setMsg("Failed to update item");
+    }
+  };
+
+  // ✏️ Save Edited GRN
+  const handleSaveGrn = async (id, updated) => {
+    const res = await updateGrn(id, updated);
+    if (res?._id) {
+      setMsg("✅ GRN updated successfully");
+      setEditGrnId(null);
+      loadGrns();
+    } else {
+      setMsg("Failed to update GRN");
     }
   };
 
@@ -108,6 +163,7 @@ function InventoryManagerLanding() {
               <th>Type</th>
               <th>Cost</th>
               <th>UOM</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -119,11 +175,15 @@ function InventoryManagerLanding() {
                   <td>{i.item_type}</td>
                   <td>{i.standard_cost}</td>
                   <td>{i.uom}</td>
+                  <td>
+                    <button onClick={() => setEditItemId(i._id)}>Edit</button>
+                    <button onClick={() => handleDeleteItem(i._id)}>Delete</button>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5">No items found</td>
+                <td colSpan="6">No items found</td>
               </tr>
             )}
           </tbody>
@@ -151,6 +211,7 @@ function InventoryManagerLanding() {
               <th>Supplier</th>
               <th>Date</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -161,11 +222,15 @@ function InventoryManagerLanding() {
                   <td>{g.supplier?.name}</td>
                   <td>{new Date(g.grn_date).toLocaleDateString()}</td>
                   <td>{g.status}</td>
+                  <td>
+                    <button onClick={() => setEditGrnId(g._id)}>Edit</button>
+                    <button onClick={() => handleDeleteGrn(g._id)}>Delete</button>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="4">No GRNs found</td>
+                <td colSpan="5">No GRNs found</td>
               </tr>
             )}
           </tbody>
