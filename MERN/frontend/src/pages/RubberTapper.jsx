@@ -8,6 +8,10 @@ function RubberTapper() {
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
 
+  // Timer states
+  const [timers, setTimers] = useState({}); // { taskId: seconds }
+  const [running, setRunning] = useState({}); // { taskId: boolean }
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -28,18 +32,66 @@ function RubberTapper() {
     loadTasks();
   }, []);
 
-  // Update status
-  const handleStatusChange = async (id, status) => {
+  // Timer interval effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimers((prev) => {
+        const updated = { ...prev };
+        Object.keys(running).forEach((taskId) => {
+          if (running[taskId]) {
+            updated[taskId] = (updated[taskId] || 0) + 1;
+          }
+        });
+        return updated;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [running]);
+
+  // Start timer
+  const handleStart = (taskId) => {
+    setRunning((r) => ({ ...r, [taskId]: true }));
+    setMsg(`▶️ Timer started for task ${taskId}`);
+  };
+
+  // Pause timer
+  const handlePause = (taskId) => {
+    setRunning((r) => ({ ...r, [taskId]: false }));
+    setMsg(`⏸️ Timer paused for task ${taskId}`);
+  };
+
+  // Stop timer and update status
+  const handleStop = async (taskId) => {
+    setRunning((r) => ({ ...r, [taskId]: false }));
+
+    const newStatus = window.prompt(
+      "Enter final status (IN_PROGRESS or DONE):",
+      "DONE"
+    );
+
+    if (!newStatus) return;
+
     try {
-      const res = await updateTask(id, { status });
+      const res = await updateTask(taskId, { status: newStatus });
       if (res?._id) {
-        setMsg(`✅ Task updated to ${status}`);
+        setMsg(`✅ Task updated to ${newStatus}`);
         setErr("");
         loadTasks();
       }
     } catch {
       setErr("❌ Failed to update task");
     }
+  };
+
+  // Format time
+  const formatTime = (secs) => {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    return `${h.toString().padStart(2, "0")}:${m
+      .toString()
+      .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -70,7 +122,8 @@ function RubberTapper() {
             <th>Description</th>
             <th>Due Date</th>
             <th>Status</th>
-            <th>Update</th>
+            <th>Timer</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -83,24 +136,21 @@ function RubberTapper() {
                   {t.dueDate ? new Date(t.dueDate).toLocaleDateString() : "-"}
                 </td>
                 <td>{t.status}</td>
+                <td>{formatTime(timers[t._id] || 0)}</td>
                 <td>
-                  {t.status === "PENDING" && (
-                    <button onClick={() => handleStatusChange(t._id, "IN_PROGRESS")}>
-                      Start
-                    </button>
+                  {!running[t._id] && (
+                    <button onClick={() => handleStart(t._id)}>Start</button>
                   )}
-                  {t.status === "IN_PROGRESS" && (
-                    <button onClick={() => handleStatusChange(t._id, "DONE")}>
-                      Mark Done
-                    </button>
+                  {running[t._id] && (
+                    <button onClick={() => handlePause(t._id)}>Pause</button>
                   )}
-                  {t.status === "DONE" && <span>✅ Completed</span>}
+                  <button onClick={() => handleStop(t._id)}>Stop</button>
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="5">No tasks assigned yet</td>
+              <td colSpan="6">No tasks assigned yet</td>
             </tr>
           )}
         </tbody>

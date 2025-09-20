@@ -1,3 +1,4 @@
+// src/routes/taskRoutes.js
 import express from "express";
 import { protect } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/roles.js";
@@ -5,25 +6,26 @@ import { ROLES } from "../models/User.js";
 import {
   createTask,
   getTasks,
-  getMyTasks,   // ✅ New controller for Rubber Tappers
+  getMyTasks,
   updateTask,
   deleteTask,
 } from "../controllers/taskController.js";
 
 const router = express.Router();
 
-// ✅ Create task → Employee Manager only
+// 🟢 Employee Manager can create tasks
 router.post("/", protect, authorizeRoles(ROLES.EMPLOYEE_MANAGER), createTask);
 
-// ✅ Get all tasks (Employee Manager)
-// Example: to see all Rubber Tapper tasks
+// 🟢 Employee Manager can view all tasks
 router.get("/", protect, authorizeRoles(ROLES.EMPLOYEE_MANAGER), getTasks);
 
-// ✅ Get logged-in Rubber Tapper’s tasks
+// 🟢 Rubber Tapper can view only their own tasks
 router.get("/my", protect, authorizeRoles(ROLES.EMPLOYEE), getMyTasks);
 
-// ✅ Update & Delete → Employee Manager only
-router.patch("/:id", protect, authorizeRoles(ROLES.EMPLOYEE_MANAGER), updateTask);
+// 🟢 Allow both Employee + Employee Manager to update
+router.patch("/:id", protect, updateTask);
+
+// 🟢 Only Employee Manager can delete tasks
 router.delete("/:id", protect, authorizeRoles(ROLES.EMPLOYEE_MANAGER), deleteTask);
 
 export default router;
