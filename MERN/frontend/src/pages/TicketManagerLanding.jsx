@@ -104,7 +104,7 @@ function TicketManagerLanding() {
                   <td>{renderOwner(ticket)}</td>
                   <td>{formatDate(ticket.createdAt)}</td>
                   <td>
-                    <Link className="ticket-link" to={`/tickets/${ticket._id}`}>
+                    <Link className="ticket-link" to={`/tickets/${ticket._id}`} state={{ from: "/ticket-manager" }}>
                       Open
                     </Link>
                   </td>

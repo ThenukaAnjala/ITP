@@ -245,7 +245,7 @@ function HelpDesk() {
                         </div>
                       ) : (
                         <div>
-                          <Link to={`/tickets/${id}`} className="ticket-link">
+                          <Link to={`/tickets/${id}`} className="ticket-link" state={{ from: "/helpdesk" }}>
                             <b>{subject}</b>
                           </Link>
                           <br />

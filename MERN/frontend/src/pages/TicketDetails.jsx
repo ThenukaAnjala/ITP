@@ -1,15 +1,17 @@
 ﻿import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import helpDeskApi from "../services/helpDeskApi";
-import BackButton from "../components/BackButton";
 import "../styles/pages/ticketdetails.css";
 
 function TicketDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
   const isManager = currentUser?.role === "ticketManager";
 
+  const fromPath = location.state?.from || (isManager ? '/ticket-manager' : '/helpdesk');
+  const handleCancel = () => navigate(fromPath);
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -111,9 +113,9 @@ function TicketDetails() {
       <div className="ticketdetails-container">
         <div className="ticketdetails-card">
           <p>{error}</p>
-          <BackButton className="back-btn" includeBaseStyles={false} onClick={() => navigate(-1)}>
-            Back
-          </BackButton>
+          <button className="cancel-ticket-btn" onClick={handleCancel}>
+            Cancel
+          </button>
         </div>
       </div>
     );
@@ -147,8 +149,12 @@ function TicketDetails() {
           <div className="chat-messages">
             {ticket.messages && ticket.messages.length > 0 ? (
               ticket.messages.map((msg) => {
-                const isOwnMessage = msg.sender === "user" ? !isManager : isManager;
-                const senderLabel = msg.sender === "manager" ? "Ticket Manager" : "You";
+                const isOwnMessage = msg.sender === (isManager ? "manager" : "user");
+                const senderLabel = msg.sender === "manager"
+                  ? (isManager ? "You" : "Ticket Manager")
+                  : isManager
+                  ? "Employee"
+                  : "You";
                 return (
                   <div
                     key={msg._id || msg.createdAt}
@@ -218,9 +224,9 @@ function TicketDetails() {
           </div>
         </div>
 
-        <BackButton className="back-btn" includeBaseStyles={false} onClick={() => navigate(-1)}>
-          Back
-        </BackButton>
+        <button className="cancel-ticket-btn" onClick={handleCancel}>
+          Cancel
+        </button>
       </div>
     </div>
   );
