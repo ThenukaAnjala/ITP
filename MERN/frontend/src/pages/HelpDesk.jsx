@@ -1,7 +1,8 @@
-// src/pages/HelpDesk.jsx
-import React, { useState } from "react";
+﻿// src/pages/HelpDesk.jsx
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/pages/helpdesk.css";
+import helpDeskApi from "../services/helpDeskApi";
 
 function HelpDesk() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -12,78 +13,157 @@ function HelpDesk() {
     message: "",
   });
 
-  const [success, setSuccess] = useState("");
+  const [tickets, setTickets] = useState([]);
   const [showTickets, setShowTickets] = useState(false);
-  const [tickets, setTickets] = useState([
-    {
-      id: 1,
-      subject: "Unable to start task timer",
-      status: "Open",
-      date: "2025-09-15",
-    },
-    {
-      id: 2,
-      subject: "Login issue in mobile app",
-      status: "Resolved",
-      date: "2025-09-12",
-    },
-  ]);
-
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
   const [editingTicket, setEditingTicket] = useState(null);
   const [editSubject, setEditSubject] = useState("");
+
+  const clearAlerts = () => {
+    setSuccess("");
+    setError("");
+  };
+
+  useEffect(() => {
+    const loadTickets = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await helpDeskApi.fetchMyHelpTickets();
+        setTickets(data);
+      } catch (err) {
+        console.error("Failed to load help desk tickets", err);
+        setError("Unable to load your tickets right now.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTickets();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newTicket = {
-      id: Date.now(),
-      subject: form.message,
-      status: "Open",
-      date: new Date().toISOString().split("T")[0],
-    };
-    setTickets((prev) => [...prev, newTicket]);
-    setSuccess("✅ Your help request has been submitted successfully.");
-    setForm({
-      name: user?.firstName ? `${user.firstName} ${user.lastName}` : "",
-      email: user?.email || "",
-      message: "",
-    });
+    clearAlerts();
+
+    if (!form.message.trim()) {
+      setError("Please describe your issue before submitting.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const created = await helpDeskApi.submitHelpTicket({
+        name: form.name,
+        email: form.email,
+        message: form.message.trim(),
+      });
+
+      setTickets((prev) => [created, ...prev]);
+      setSuccess("Your help request has been submitted successfully.");
+      setForm({
+        name: user?.firstName ? `${user.firstName} ${user.lastName}` : "",
+        email: user?.email || "",
+        message: "",
+      });
+      if (!showTickets) {
+        setShowTickets(true);
+      }
+    } catch (err) {
+      console.error("Help ticket submission failed", err);
+      setError("Failed to submit your request. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  // 🟢 Edit ticket
   const handleEdit = (ticket) => {
-    setEditingTicket(ticket.id);
-    setEditSubject(ticket.subject);
+    clearAlerts();
+    const id = ticket._id || ticket.id;
+    setEditingTicket(id);
+    setEditSubject(ticket.message || ticket.subject || "");
   };
 
-  const handleSaveEdit = (id) => {
-    setTickets((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, subject: editSubject, status: "Open" } : t
-      )
-    );
-    setEditingTicket(null);
-    setEditSubject("");
+  const handleSaveEdit = async (id) => {
+    if (!editSubject.trim()) {
+      setError("Please provide a message before saving.");
+      return;
+    }
+
+    setActionLoadingId(`edit-${id}`);
+    clearAlerts();
+    try {
+      const updated = await helpDeskApi.updateHelpTicket(id, {
+        message: editSubject.trim(),
+      });
+
+      setTickets((prev) =>
+        prev.map((t) => ((t._id || t.id) === id ? updated : t))
+      );
+      setSuccess("Ticket updated successfully.");
+      setEditingTicket(null);
+      setEditSubject("");
+    } catch (err) {
+      console.error("Help ticket update failed", err);
+      setError("Failed to update the ticket. Please try again.");
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
-  // 🗑️ Delete ticket
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
+    clearAlerts();
     if (!window.confirm("Are you sure you want to delete this ticket?")) return;
-    setTickets((prev) => prev.filter((t) => t.id !== id));
+
+    setActionLoadingId(`delete-${id}`);
+    try {
+      await helpDeskApi.deleteHelpTicket(id);
+      setTickets((prev) => prev.filter((t) => (t._id || t.id) !== id));
+      setSuccess("Ticket deleted successfully.");
+      if (editingTicket === id) {
+        setEditingTicket(null);
+        setEditSubject("");
+      }
+    } catch (err) {
+      console.error("Help ticket delete failed", err);
+      setError("Failed to delete the ticket. Please try again.");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const renderTicketSubject = (ticket) =>
+    ticket.message || ticket.subject || ticket.messages?.[0]?.text || "Help request";
+
+  const renderTicketStatus = (ticket) =>
+    ticket.status ? ticket.status : "OPEN";
+
+  const renderTicketDate = (ticket) => {
+    if (ticket.createdAt) {
+      return new Date(ticket.createdAt).toLocaleDateString();
+    }
+    if (ticket.date) return ticket.date;
+    return "";
   };
 
   return (
     <div className="helpdesk-container">
       <div className="helpdesk-card">
         <div className="helpdesk-header">
-          <span className="helpdesk-icon">📞</span>
+          <span className="helpdesk-icon">HD</span>
           <h2>Help Desk</h2>
         </div>
 
+        {error && <div className="helpdesk-error">{error}</div>}
         {success && <div className="helpdesk-success">{success}</div>}
 
         <form onSubmit={handleSubmit} className="helpdesk-form">
@@ -101,77 +181,97 @@ function HelpDesk() {
             onChange={handleChange}
           />
 
-          <button type="submit">Submit Request</button>
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Submitting..." : "Submit Request"}
+          </button>
         </form>
 
-        {/* View Old Tickets Button */}
         <div style={{ marginTop: "20px", textAlign: "center" }}>
           <button
             className="view-tickets-btn"
             onClick={() => setShowTickets((prev) => !prev)}
+            disabled={loading}
           >
-            {showTickets ? "Hide Tickets" : "📂 View Old Tickets"}
+            {showTickets ? "Hide Tickets" : "View My Tickets"}
           </button>
         </div>
 
-        {/* Ticket List */}
         {showTickets && (
           <div className="ticket-list">
-            <h3>📋 My Tickets</h3>
-            {tickets.length > 0 ? (
+            <h3>My Tickets</h3>
+            {loading ? (
+              <p>Loading tickets...</p>
+            ) : tickets.length > 0 ? (
               <ul>
-                {tickets.map((t) => (
-                  <li
-                    key={t.id}
-                    className={`ticket-item ${t.status.toLowerCase()}`}
-                  >
-                    {editingTicket === t.id ? (
-                      <div>
-                        <input
-                          type="text"
-                          value={editSubject}
-                          onChange={(e) => setEditSubject(e.target.value)}
-                        />
-                        <button
-                          className="save-btn"
-                          onClick={() => handleSaveEdit(t.id)}
-                        >
-                          Save
-                        </button>
-                        <button
-                          className="cancel-btn"
-                          onClick={() => setEditingTicket(null)}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <div>
-                        {/* Ticket clickable link */}
-                        <Link to={`/tickets/${t.id}`} className="ticket-link">
-                          <b>{t.subject}</b>
-                        </Link>
-                        <br />
-                        <span>Status: {t.status}</span> |{" "}
-                        <span>Date: {t.date}</span>
-                        <div style={{ marginTop: "6px" }}>
+                {tickets.map((t) => {
+                  const id = t._id || t.id;
+                  const subject = renderTicketSubject(t);
+                  const status = renderTicketStatus(t);
+                  const date = renderTicketDate(t);
+                  const editLoading = actionLoadingId === `edit-${id}`;
+                  const deleteLoading = actionLoadingId === `delete-${id}`;
+                  const statusClass = (status || "OPEN").toLowerCase();
+
+                  return (
+                    <li key={id} className={`ticket-item ${statusClass}`}>
+                      {editingTicket === id ? (
+                        <div>
+                          <input
+                            type="text"
+                            value={editSubject}
+                            onChange={(e) => setEditSubject(e.target.value)}
+                          />
                           <button
-                            className="edit-btn"
-                            onClick={() => handleEdit(t)}
+                            className="save-btn"
+                            onClick={() => handleSaveEdit(id)}
+                            disabled={editLoading}
                           >
-                            ✏️ Edit
+                            {editLoading ? "Saving..." : "Save"}
                           </button>
                           <button
-                            className="delete-btn"
-                            onClick={() => handleDelete(t.id)}
+                            className="cancel-btn"
+                            onClick={() => {
+                              setEditingTicket(null);
+                              setEditSubject("");
+                            }}
+                            disabled={editLoading}
                           >
-                            🗑️ Delete
+                            Cancel
                           </button>
                         </div>
-                      </div>
-                    )}
-                  </li>
-                ))}
+                      ) : (
+                        <div>
+                          <Link to={`/tickets/${id}`} className="ticket-link">
+                            <b>{subject}</b>
+                          </Link>
+                          <br />
+                          <span>Status: {status}</span>
+                          {date && (
+                            <>
+                              {" "}| <span>Date: {date}</span>
+                            </>
+                          )}
+                          <div style={{ marginTop: "6px" }}>
+                            <button
+                              className="edit-btn"
+                              onClick={() => handleEdit(t)}
+                              disabled={deleteLoading}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="delete-btn"
+                              onClick={() => handleDelete(id)}
+                              disabled={deleteLoading || editLoading}
+                            >
+                              {deleteLoading ? "Deleting..." : "Delete"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p>No previous tickets found.</p>
