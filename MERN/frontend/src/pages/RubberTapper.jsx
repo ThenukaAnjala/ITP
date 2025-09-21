@@ -50,15 +50,29 @@ function RubberTapper() {
   }, [running]);
 
   // Start timer
-  const handleStart = (taskId) => {
+  const handleStart = async (taskId) => {
     setRunning((r) => ({ ...r, [taskId]: true }));
     setMsg(`▶️ Timer started for task ${taskId}`);
+
+    try {
+      await updateTask(taskId, { action: "START" }); // ✅ send action
+      loadTasks();
+    } catch {
+      setErr("❌ Failed to update task");
+    }
   };
 
   // Pause timer
-  const handlePause = (taskId) => {
+  const handlePause = async (taskId) => {
     setRunning((r) => ({ ...r, [taskId]: false }));
     setMsg(`⏸️ Timer paused for task ${taskId}`);
+
+    try {
+      await updateTask(taskId, { action: "PAUSE" }); // ✅ send action
+      loadTasks();
+    } catch {
+      setErr("❌ Failed to update task");
+    }
   };
 
   // Stop timer and update status
@@ -73,12 +87,10 @@ function RubberTapper() {
     if (!newStatus) return;
 
     try {
-      const res = await updateTask(taskId, { status: newStatus });
-      if (res?._id) {
-        setMsg(`✅ Task updated to ${newStatus}`);
-        setErr("");
-        loadTasks();
-      }
+      await updateTask(taskId, { status: newStatus, action: "STOP" }); // ✅ send status + action
+      setMsg(`✅ Task updated to ${newStatus}`);
+      setErr("");
+      loadTasks();
     } catch {
       setErr("❌ Failed to update task");
     }

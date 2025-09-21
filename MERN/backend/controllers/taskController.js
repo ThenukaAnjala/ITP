@@ -46,28 +46,43 @@ export const getMyTasks = async (req, res) => {
   }
 };
 
+
 // ✏️ Update Task
 export const updateTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: "Task not found" });
 
-    // 🟢 Rubber Tapper → can only update their own task status
     if (req.user.role === "employee") {
       if (String(task.assignedTo) !== String(req.user._id)) {
-        return res.status(403).json({ message: "Not authorized to update this task" });
+        return res.status(403).json({ message: "Not authorized" });
       }
-      if (!req.body.status) {
-        return res.status(400).json({ message: "Only status can be updated" });
-      }
-      task.status = req.body.status;
+
+      const { status, action } = req.body;
+
+      if (action === "START") {
+       task.status = "IN_PROGRESS";
+       task.history.push({ action: "START", at: new Date() }); // ✅ fixed
+}
+
+      if (action === "PAUSE") {
+       task.history.push({ action: "PAUSE", at: new Date() }); // ✅ fixed
+}
+
+if (action === "STOP") {
+  task.status = status || "DONE";
+  task.history.push({ action: "STOP", at: new Date() }); // ✅ fixed
+}
+
+
       await task.save();
       return res.json(task);
     }
 
-    // 🟢 Employee Manager → full update access
     if (req.user.role === "employeeManager") {
-      const updated = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      const updated = await Task.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+      });
       return res.json(updated);
     }
 

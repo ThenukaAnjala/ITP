@@ -24,47 +24,61 @@ function AssignTask() {
   });
   const [editingTask, setEditingTask] = useState(null);
   const [msg, setMsg] = useState("");
+  const [err, setErr] = useState("");
 
+  // 🔄 Load users + tasks
   useEffect(() => {
     loadUsers();
     loadTasks();
   }, []);
 
   const loadUsers = async () => {
-    const data = await getUsers();
-    setUsers(data.filter((u) => u.role === "employee")); // only Rubber Tappers
+    try {
+      const data = await getUsers();
+      setUsers(data.filter((u) => u.role === "employee")); // only Rubber Tappers
+    } catch {
+      setErr("❌ Failed to load users");
+    }
   };
 
   const loadTasks = async () => {
-    const data = await getTasks();
-    // 🔑 Filter only tasks assigned to this Rubber Tapper
-    const filtered = Array.isArray(data)
-      ? data.filter((t) => t.assignedTo?._id === id)
-      : [];
-    setTasks(filtered);
+    try {
+      const data = await getTasks();
+      const filtered = Array.isArray(data)
+        ? data.filter((t) => t.assignedTo?._id === id)
+        : [];
+      setTasks(filtered);
+    } catch {
+      setErr("❌ Failed to load tasks");
+    }
   };
 
   // ➕ Add / Save Task
   const onSubmit = async (e) => {
     e.preventDefault();
     let res;
-    if (editingTask) {
-      res = await updateTask(editingTask, taskForm);
-      if (res?._id) setMsg("✅ Task updated successfully");
-    } else {
-      res = await createTask(taskForm);
-      if (res?._id) setMsg("✅ Task created successfully");
-    }
+    try {
+      if (editingTask) {
+        res = await updateTask(editingTask, taskForm);
+        if (res?._id) setMsg("✅ Task updated successfully");
+      } else {
+        res = await createTask(taskForm);
+        if (res?._id) setMsg("✅ Task created successfully");
+      }
 
-    setTaskForm({
-      title: "",
-      description: "",
-      assignedTo: id || "",
-      dueDate: "",
-      status: "PENDING",
-    });
-    setEditingTask(null);
-    loadTasks();
+      // Reset form
+      setTaskForm({
+        title: "",
+        description: "",
+        assignedTo: id || "",
+        dueDate: "",
+        status: "PENDING",
+      });
+      setEditingTask(null);
+      loadTasks();
+    } catch {
+      setErr("❌ Failed to save task");
+    }
   };
 
   // ✏️ Edit task
@@ -82,9 +96,13 @@ function AssignTask() {
   // ❌ Delete task
   const handleDelete = async (taskId) => {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
-    const res = await deleteTask(taskId);
-    setMsg(res?.message || "Task deleted");
-    loadTasks();
+    try {
+      const res = await deleteTask(taskId);
+      setMsg(res?.message || "Task deleted");
+      loadTasks();
+    } catch {
+      setErr("❌ Failed to delete task");
+    }
   };
 
   return (
@@ -97,6 +115,7 @@ function AssignTask() {
       </header>
 
       {msg && <div className="ok">{msg}</div>}
+      {err && <div className="error">{err}</div>}
 
       {/* Task Form */}
       <section className="card">
@@ -150,7 +169,7 @@ function AssignTask() {
           >
             <option value="PENDING">PENDING</option>
             <option value="IN_PROGRESS">IN PROGRESS</option>
-            <option value="COMPLETED">COMPLETED</option>
+            <option value="DONE">DONE</option>
           </select>
           <button type="submit">
             {editingTask ? "Update Task" : "Assign Task"}
@@ -160,13 +179,14 @@ function AssignTask() {
 
       {/* Task List */}
       <section className="card">
-        <h2>My Tasks</h2>
+        <h2>Assigned Tasks</h2>
         <table className="users-table">
           <thead>
             <tr>
               <th>Title</th>
               <th>Status</th>
               <th>Due Date</th>
+              <th>History</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -177,7 +197,28 @@ function AssignTask() {
                   <td>{t.title}</td>
                   <td>{t.status}</td>
                   <td>
-                    {t.dueDate ? new Date(t.dueDate).toLocaleDateString() : "-"}
+                    {t.dueDate
+                      ? new Date(t.dueDate).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  <td>
+                    {t.history?.length > 0 ? (
+                      <details>
+                        <summary>View</summary>
+                        <ul>
+                          {t.history.map((h, i) => (
+                            <li key={i}>
+                              <b>{h.action}</b> at{" "}
+                              {h.at
+                                ? new Date(h.at).toLocaleString()
+                                : "No Date"}
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    ) : (
+                      "No history"
+                    )}
                   </td>
                   <td>
                     <button onClick={() => handleEdit(t)}>Edit</button>
@@ -187,7 +228,7 @@ function AssignTask() {
               ))
             ) : (
               <tr>
-                <td colSpan="4">No tasks found</td>
+                <td colSpan="5">No tasks found</td>
               </tr>
             )}
           </tbody>

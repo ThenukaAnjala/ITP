@@ -1,5 +1,14 @@
 import mongoose from "mongoose";
 
+const historySchema = new mongoose.Schema(
+  {
+    action: { type: String, enum: ["START", "PAUSE", "STOP"], required: true },
+    at: { type: Date, default: Date.now }, // ✅ this should auto-save timestamp
+  },
+  { _id: false }
+);
+
+
 const taskSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
@@ -10,7 +19,7 @@ const taskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true, // ✅ optimize queries for getMyTasks
+      index: true,
     },
 
     status: {
@@ -27,6 +36,9 @@ const taskSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
+    // 🆕 Job history
+    history: [historySchema],
   },
   { timestamps: true }
 );
