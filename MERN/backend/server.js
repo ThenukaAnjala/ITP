@@ -8,6 +8,7 @@ import userRoutes from "./routes/userRoutes.js";
 import itemRoutes from "./routes/itemRoutes.js";
 import grnRoutes from "./routes/grnRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
+import ticketRoutes from "./routes/ticketRoutes.js";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/grns", grnRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/tickets", ticketRoutes);
 
 const PORT = process.env.PORT || 5000;
 

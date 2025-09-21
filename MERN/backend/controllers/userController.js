@@ -1,78 +1,94 @@
-import User from "../models/User.js";
+import { validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
+import User from "../models/User.js";
 
-// ✅ Get all users (no password)
-export const getAllUsers = async (req, res) => {
+const validationFailed = (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ message: "Invalid input" });
+    return true;
+  }
+  return false;
+};
+
+export const getAllUsers = async (_req, res) => {
   try {
-    const users = await User.find({}, "-password");
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
     res.json(users);
-  } catch (err) {
+  } catch (error) {
+    console.error("Get users failed:", error.message);
     res.status(500).json({ message: "Failed to fetch users" });
   }
 };
 
-// ✅ Register new user (Admin → Managers / Manager → Employees etc.)
 export const registerUser = async (req, res) => {
+  if (validationFailed(req, res)) return;
+
+  const { firstName, lastName, email, password, role } = req.body;
+
   try {
-    const { firstName, lastName, email, password, role } = req.body;
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
 
-    // check duplicate email
-    const exist = await User.findOne({ email });
-    if (exist) return res.status(400).json({ message: "Email already exists" });
-
-    // hash password
-    const hashed = await bcrypt.hash(password, 10);
-
-    const user = await User.create({
+    const created = await User.create({
       firstName,
       lastName,
       email,
-      password: hashed,
-      role, // "employeeManager", "employee", "inventoryManager", "supplierManager"
+      password,
+      role,
     });
 
     res.status(201).json({
-      id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
+      id: created._id,
+      firstName: created.firstName,
+      lastName: created.lastName,
+      email: created.email,
+      role: created.role,
     });
-  } catch (err) {
+  } catch (error) {
+    console.error("Register user failed:", error.message);
     res.status(500).json({ message: "Failed to register user" });
   }
 };
 
-// ✅ Update user
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const update = req.body;
+    const update = { ...req.body };
 
     if (update.password) {
       update.password = await bcrypt.hash(update.password, 10);
     }
 
-    const user = await User.findByIdAndUpdate(id, update, { new: true }).select(
-      "-password"
-    );
+    const updated = await User.findByIdAndUpdate(id, update, {
+      new: true,
+    }).select("-password");
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!updated) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    res.json(user);
-  } catch (err) {
+    res.json(updated);
+  } catch (error) {
+    console.error("Update user failed:", error.message);
     res.status(500).json({ message: "Failed to update user" });
   }
 };
 
-// ✅ Delete user
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await User.findByIdAndDelete(id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json({ message: "User deleted" });
-  } catch (err) {
+    const deleted = await User.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User removed" });
+  } catch (error) {
+    console.error("Delete user failed:", error.message);
     res.status(500).json({ message: "Failed to delete user" });
   }
 };

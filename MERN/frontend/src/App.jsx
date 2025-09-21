@@ -8,6 +8,7 @@ import SupplierManagerLanding from "./pages/SupplierManagerLanding";
 import RubberTapper from "./pages/RubberTapper";
 import AssignTask from "./pages/AssignTask"; // 👈 new page import
 import HelpDesk from "./pages/HelpDesk"; // 👈 new page import
+import TicketDetails from "./pages/TicketDetails"; // ✅ new page import
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/assign-task/:id" element={<AssignTask />} /> {/* 👈 new route */}
         {/* <Route path="/rubber-tapper" element={<RubberTapper />} /> */}
         <Route path="/helpdesk" element={<HelpDesk />} /> {/* 👈 new route */}
+        <Route path="/tickets/:id" element={<TicketDetails />} /> {/* ✅ new */}
       </Routes>
     </Router>
   );

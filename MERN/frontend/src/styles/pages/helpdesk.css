@@ -148,3 +148,52 @@
     font-size: 14px;
   }
 }
+/* Ticket action buttons */
+.edit-btn,
+.delete-btn,
+.save-btn,
+.cancel-btn {
+  border: none;
+  padding: 6px 10px;
+  margin-right: 6px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.edit-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #1e40af;
+}
+
+.delete-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #991b1b;
+}
+
+.save-btn {
+  background: #10b981;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #047857;
+}
+
+.cancel-btn {
+  background: #9ca3af;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #4b5563;
+}
