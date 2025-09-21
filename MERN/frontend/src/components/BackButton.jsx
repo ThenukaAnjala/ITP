@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 const BackButton = ({
   to,
   step = -1,
+  navigateTarget,
   children = "Back",
   className = "",
   includeBaseStyles = true,
@@ -18,6 +19,11 @@ const BackButton = ({
     }
 
     if (event.defaultPrevented) return;
+
+    if (navigateTarget) {
+      navigate(navigateTarget);
+      return;
+    }
 
     if (to) {
       navigate(to);

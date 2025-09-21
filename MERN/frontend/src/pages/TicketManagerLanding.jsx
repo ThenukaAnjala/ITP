@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import helpDeskApi from "../services/helpDeskApi";
+import LogoutButton from "../components/LogoutButton";
 import "../styles/pages/ticketmanager.css";
 
 function TicketManagerLanding() {
@@ -66,13 +67,16 @@ function TicketManagerLanding() {
               : "Welcome!"}
           </p>
         </div>
-        <button
-          className="ticket-refresh"
-          onClick={loadTickets}
-          disabled={loading}
-        >
-          {loading ? "Refreshing..." : "Refresh"}
-        </button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button
+            className="ticket-refresh"
+            onClick={loadTickets}
+            disabled={loading}
+          >
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+          <LogoutButton />
+        </div>
       </header>
 
       {error && <div className="ticket-manager-error">{error}</div>}

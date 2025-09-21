@@ -160,7 +160,7 @@ function HelpDesk() {
     <div className="helpdesk-container">
       <div className="helpdesk-card">
         <div className="helpdesk-top">
-          <BackButton includeBaseStyles={false} className="back-btn">Back</BackButton>
+          <BackButton includeBaseStyles={false} className="back-btn" to="/rubber-tapper">Back</BackButton>
           <div className="helpdesk-header">
             <span className="helpdesk-icon">HD</span>
             <h2>Help Desk</h2>
@@ -288,3 +288,4 @@ function HelpDesk() {
 }
 
 export default HelpDesk;
+
