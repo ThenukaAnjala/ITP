@@ -22,6 +22,18 @@ export const submitHelpTicket = async (payload) => {
   return res.json();
 };
 
+export const fetchAllHelpTickets = async () => {
+  const res = await fetch(API, {
+    headers: headers(),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch help tickets");
+  }
+
+  return res.json();
+};
+
 export const fetchMyHelpTickets = async () => {
   const res = await fetch(`${API}/my`, {
     headers: headers(),
@@ -63,6 +75,7 @@ export const deleteHelpTicket = async (id) => {
 
 export default {
   submitHelpTicket,
+  fetchAllHelpTickets,
   fetchMyHelpTickets,
   updateHelpTicket,
   deleteHelpTicket,

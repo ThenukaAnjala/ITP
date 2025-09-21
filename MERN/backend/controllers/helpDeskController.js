@@ -18,6 +18,19 @@ export const createTicket = async (req, res) => {
   }
 };
 
+// Get all tickets (Ticket Manager)
+export const getAllTickets = async (_req, res) => {
+  try {
+    const tickets = await HelpTicket.find()
+      .populate("user", "firstName lastName email role")
+      .sort({ createdAt: -1 });
+    res.json(tickets);
+  } catch (err) {
+    console.error("Get All Help Tickets Error:", err);
+    res.status(500).json({ message: "Failed to fetch tickets" });
+  }
+};
+
 // Get My Tickets
 export const getMyTickets = async (req, res) => {
   try {

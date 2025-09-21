@@ -1,6 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
-import ticketApi from "../services/ticketApi";
-import LogoutButton from "../components/LogoutButton";
+import helpDeskApi from "../services/helpDeskApi";
 import "../styles/pages/ticketmanager.css";
 
 function TicketManagerLanding() {
@@ -14,11 +13,11 @@ function TicketManagerLanding() {
     setLoading(true);
     setError("");
     try {
-      const data = await ticketApi.getAllTickets();
+      const data = await helpDeskApi.fetchAllHelpTickets();
       setTickets(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Failed to load tickets", err);
-      setError("Failed to load tickets. Please try again.");
+      console.error("Failed to load help desk tickets", err);
+      setError("Unable to load help desk tickets. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -36,16 +35,29 @@ function TicketManagerLanding() {
     value ? new Date(value).toLocaleString() : "-";
 
   const renderOwner = (ticket) => {
-    if (!ticket?.createdBy) return "Unknown";
-    const { firstName, lastName, email } = ticket.createdBy;
-    const name = [firstName, lastName].filter(Boolean).join(" ");
-    return name || email || "Unknown";
+    if (ticket?.name) return ticket.name;
+    if (ticket?.user) {
+      const { firstName, lastName, email } = ticket.user;
+      const name = [firstName, lastName].filter(Boolean).join(" ");
+      return name || email || "Unknown";
+    }
+    return ticket?.email || "Unknown";
   };
 
-  const statusClass = (status) =>
-    status && status.toLowerCase() === "resolved"
-      ? "ticket-status-resolved"
-      : "ticket-status-open";
+  const renderStatus = (status) => {
+    const value = status || "OPEN";
+    const pretty = value
+      .toString()
+      .toUpperCase();
+    return pretty;
+  };
+
+  const statusClass = (status) => {
+    const value = (status || "OPEN").toLowerCase();
+    if (value === "resolved") return "ticket-status-resolved";
+    if (value === "in_progress") return "ticket-status-open";
+    return "ticket-status-open";
+  };
 
   return (
     <div className="ticket-manager-wrap">
@@ -58,22 +70,19 @@ function TicketManagerLanding() {
               : "Welcome!"}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button
-            className="ticket-refresh"
-            onClick={loadTickets}
-            disabled={loading}
-          >
-            {loading ? "Refreshing..." : "Refresh"}
-          </button>
-          <LogoutButton />
-        </div>
+        <button
+          className="ticket-refresh"
+          onClick={loadTickets}
+          disabled={loading}
+        >
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
       </header>
 
       {error && <div className="ticket-manager-error">{error}</div>}
 
       <section className="ticket-manager-card">
-        <h2>Employee Tickets</h2>
+        <h2>Help Desk Tickets</h2>
         {loading ? (
           <p>Loading tickets...</p>
         ) : tickets.length === 0 ? (
@@ -92,9 +101,9 @@ function TicketManagerLanding() {
             <tbody>
               {tickets.map((ticket) => (
                 <tr key={ticket._id}>
-                  <td>{ticket.subject}</td>
+                  <td>{ticket.name || ticket.subject || "Help Desk Ticket"}</td>
                   <td>{ticket.message}</td>
-                  <td className={statusClass(ticket.status)}>{ticket.status}</td>
+                  <td className={statusClass(ticket.status)}>{renderStatus(ticket.status)}</td>
                   <td>{renderOwner(ticket)}</td>
                   <td>{formatDate(ticket.createdAt)}</td>
                 </tr>

@@ -1,7 +1,10 @@
 ﻿import express from "express";
 import { protect } from "../middleware/auth.js";
+import { authorizeRoles } from "../middleware/roles.js";
+import { ROLES } from "../models/User.js";
 import {
   createTicket,
+  getAllTickets,
   getMyTickets,
   addMessage,
   updateTicket,
@@ -12,6 +15,9 @@ const router = express.Router();
 
 // Create new ticket
 router.post("/", protect, createTicket);
+
+// Get all tickets (Ticket Manager)
+router.get("/", protect, authorizeRoles(ROLES.TICKET_MANAGER), getAllTickets);
 
 // Get logged-in user's tickets
 router.get("/my", protect, getMyTickets);
