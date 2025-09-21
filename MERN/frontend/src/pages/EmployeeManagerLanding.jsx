@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
   registerUser,
   getUsers,
@@ -41,7 +41,7 @@ function EmployeeManagerLanding() {
           (u) =>
             u.role === "employee" ||
             u.role === "inventoryManager" ||
-            u.role === "supplierManager"
+            u.role === "ticketManager"
         );
         setUsers(filtered);
       }
@@ -69,7 +69,7 @@ function EmployeeManagerLanding() {
     setLoading(false);
 
     if (data && data.id) {
-      setMsg(`✅ ${form.role} created: ${data.firstName} ${data.lastName}`);
+      setMsg(`âœ… ${form.role} created: ${data.firstName} ${data.lastName}`);
       setForm({
         firstName: "",
         lastName: "",
@@ -112,7 +112,7 @@ function EmployeeManagerLanding() {
   const saveEdit = async (id) => {
     const res = await updateUser(id, editForm);
     if (res?._id) {
-      setMsg("✅ User updated successfully");
+      setMsg("âœ… User updated successfully");
       setEditingUser(null);
       loadUsers();
     } else {
@@ -203,7 +203,7 @@ function EmployeeManagerLanding() {
             <select name="role" value={form.role} onChange={onChange}>
               <option value="employee">Rubber Tapper</option>
               <option value="inventoryManager">Inventory Manager</option>
-              <option value="supplierManager">Supplier Manager</option>
+              <option value="ticketManager">Ticket Manager</option>
             </select>
           </div>
 
@@ -330,3 +330,4 @@ function EmployeeManagerLanding() {
 }
 
 export default EmployeeManagerLanding;
+

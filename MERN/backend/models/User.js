@@ -1,4 +1,4 @@
-// models/User.js
+﻿// models/User.js
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
@@ -7,7 +7,7 @@ export const ROLES = {
   EMPLOYEE_MANAGER: "employeeManager",
   EMPLOYEE: "employee",
   INVENTORY_MANAGER: "inventoryManager",
-  SUPPLIER_MANAGER: "supplierManager",
+  TICKET_MANAGER: "ticketManager",
 };
 
 const userSchema = new mongoose.Schema(
@@ -38,3 +38,4 @@ userSchema.methods.matchPassword = function (plain) {
 };
 
 export default mongoose.model("User", userSchema);
+

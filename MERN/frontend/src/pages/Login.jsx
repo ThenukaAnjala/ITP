@@ -1,4 +1,4 @@
-// src/pages/Login.jsx
+﻿// src/pages/Login.jsx
 import { useState } from "react";
 import { loginUser } from "../services/api";
 import "../styles/pages/login.css";
@@ -22,7 +22,7 @@ function Login() {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        // 🔑 Normalize role (lowercase, remove special chars)
+        // ðŸ”‘ Normalize role (lowercase, remove special chars)
         const role = data.user.role?.toLowerCase();
 
         if (role === "admin") {
@@ -31,8 +31,8 @@ function Login() {
           window.location.href = "/employee-manager";
         } else if (role === "inventorymanager") {
           window.location.href = "/inventory-manager";
-        } else if (role === "suppliermanager") {
-          window.location.href = "/supplier-manager";
+        } else if (role === "ticketmanager") {
+          window.location.href = "/ticket-manager";
         } else if (role === "employee") {
           window.location.href = "/rubber-tapper";
         } else {
@@ -82,3 +82,4 @@ function Login() {
 }
 
 export default Login;
+

@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import { body } from "express-validator";
 import { protect } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/roles.js";
@@ -27,7 +27,7 @@ router.post(
     body("role").isIn([
       ROLES.EMPLOYEE,
       ROLES.INVENTORY_MANAGER,
-      ROLES.SUPPLIER_MANAGER,
+      ROLES.TICKET_MANAGER,
     ]),
   ],
   registerUser
@@ -38,3 +38,4 @@ router.patch("/:id", protect, authorizeRoles(...MANAGERS), updateUser);
 router.delete("/:id", protect, authorizeRoles(...MANAGERS), deleteUser);
 
 export default router;
+

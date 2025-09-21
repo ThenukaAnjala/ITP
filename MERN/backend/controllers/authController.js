@@ -15,8 +15,8 @@ const buildLandingRoute = (role) => {
       return "/employee-manager";
     case ROLES.INVENTORY_MANAGER:
       return "/inventory-manager";
-    case ROLES.SUPPLIER_MANAGER:
-      return "/supplier-manager";
+    case ROLES.TICKET_MANAGER:
+      return "/ticket-manager";
     default:
       return "/";
   }
@@ -125,3 +125,4 @@ export const registerInitialAdmin = async (req, res) => {
     res.status(500).json({ message: "Unable to register admin" });
   }
 };
+
