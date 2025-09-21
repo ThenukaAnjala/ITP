@@ -1,12 +1,12 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
-    sender: { type: String, enum: ["user", "admin"], required: true },
+    sender: { type: String, enum: ["user", "manager"], required: true },
     text: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
   },
-  { _id: false }
+  { _id: true }
 );
 
 const helpTicketSchema = new mongoose.Schema(
@@ -18,13 +18,13 @@ const helpTicketSchema = new mongoose.Schema(
     },
     name: String,
     email: String,
-    message: String,        // initial issue
+    message: String, // initial issue
     status: {
       type: String,
       enum: ["OPEN", "IN_PROGRESS", "RESOLVED"],
-      default: "OPEN"
+      default: "OPEN",
     },
-    messages: [messageSchema] // chat history
+    messages: [messageSchema],
   },
   { timestamps: true }
 );

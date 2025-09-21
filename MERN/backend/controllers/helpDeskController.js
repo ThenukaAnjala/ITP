@@ -1,4 +1,22 @@
 ﻿import HelpTicket from "../models/HelpTicket.js";
+import { ROLES } from "../models/User.js";
+
+const isTicketManager = (user) => user?.role === ROLES.TICKET_MANAGER;
+
+const getOwnerId = (ticket) => {
+  if (!ticket?.user) return null;
+  if (ticket.user._id) return ticket.user._id.toString();
+  return ticket.user.toString();
+};
+
+const canAccessTicket = (ticket, user) => {
+  if (!ticket || !user) return false;
+  const ownerId = getOwnerId(ticket);
+  return ownerId === user._id.toString() || isTicketManager(user);
+};
+
+const populateTicket = (query) =>
+  query.populate("user", "firstName lastName email role");
 
 // Create Ticket
 export const createTicket = async (req, res) => {
@@ -11,7 +29,8 @@ export const createTicket = async (req, res) => {
       message,
       messages: [{ sender: "user", text: message }],
     });
-    res.status(201).json(ticket);
+    const populated = await populateTicket(HelpTicket.findById(ticket._id));
+    res.status(201).json(populated);
   } catch (err) {
     console.error("Create Ticket Error:", err);
     res.status(500).json({ message: "Failed to create ticket" });
@@ -21,13 +40,26 @@ export const createTicket = async (req, res) => {
 // Get all tickets (Ticket Manager)
 export const getAllTickets = async (_req, res) => {
   try {
-    const tickets = await HelpTicket.find()
-      .populate("user", "firstName lastName email role")
-      .sort({ createdAt: -1 });
+    const tickets = await populateTicket(HelpTicket.find()).sort({ createdAt: -1 });
     res.json(tickets);
   } catch (err) {
     console.error("Get All Help Tickets Error:", err);
     res.status(500).json({ message: "Failed to fetch tickets" });
+  }
+};
+
+// Get single ticket
+export const getTicketById = async (req, res) => {
+  try {
+    const ticket = await populateTicket(HelpTicket.findById(req.params.id));
+    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+    if (!canAccessTicket(ticket, req.user)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+    res.json(ticket);
+  } catch (err) {
+    console.error("Get Help Ticket Error:", err);
+    res.status(500).json({ message: "Failed to fetch ticket" });
   }
 };
 
@@ -44,31 +76,15 @@ export const getMyTickets = async (req, res) => {
 // Update Ticket (message/status)
 export const updateTicket = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { message, status } = req.body;
-
-    const ticket = await HelpTicket.findOne({ _id: id, user: req.user._id });
+    const filter = isTicketManager(req.user)
+      ? { _id: req.params.id }
+      : { _id: req.params.id, user: req.user._id };
+    const ticket = await populateTicket(
+      HelpTicket.findOneAndUpdate(filter, req.body, { new: true })
+    );
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
-
-    if (typeof message === "string") {
-      ticket.message = message;
-      if (Array.isArray(ticket.messages) && ticket.messages.length) {
-        ticket.messages[0].text = message;
-      } else {
-        ticket.messages = [{ sender: "user", text: message }];
-      }
-    }
-
-    if (status) {
-      const normalized = status.toUpperCase();
-      if (["OPEN", "IN_PROGRESS", "RESOLVED"].includes(normalized)) {
-        ticket.status = normalized;
-      }
-    }
-
-    await ticket.save();
     res.json(ticket);
   } catch (err) {
     console.error("Update Ticket Error:", err);
@@ -80,23 +96,88 @@ export const updateTicket = async (req, res) => {
 export const addMessage = async (req, res) => {
   try {
     const { text } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Message text is required" });
+    }
+
+    const ticket = await HelpTicket.findById(req.params.id);
+    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+    if (!canAccessTicket(ticket, req.user)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const sender = isTicketManager(req.user) ? "manager" : "user";
+    ticket.messages.push({ sender, text: text.trim() });
+    await ticket.save();
+    await ticket.populate("user", "firstName lastName email role");
+
+    res.status(201).json(ticket);
+  } catch (err) {
+    console.error("Add Help Ticket Message Error:", err);
+    res.status(500).json({ message: "Failed to add message" });
+  }
+};
+
+// Update message (Ticket Manager)
+export const updateMessage = async (req, res) => {
+  try {
+    if (!isTicketManager(req.user)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const { text } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Message text is required" });
+    }
+
     const ticket = await HelpTicket.findById(req.params.id);
     if (!ticket) return res.status(404).json({ message: "Ticket not found" });
 
-    ticket.messages.push({ sender: "user", text });
+    const message = ticket.messages.id(req.params.messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+
+    message.text = text.trim();
     await ticket.save();
+    await ticket.populate("user", "firstName lastName email role");
 
     res.json(ticket);
   } catch (err) {
-    res.status(500).json({ message: "Failed to add message" });
+    console.error("Update Help Ticket Message Error:", err);
+    res.status(500).json({ message: "Failed to update message" });
+  }
+};
+
+// Delete message (Ticket Manager)
+export const deleteMessage = async (req, res) => {
+  try {
+    if (!isTicketManager(req.user)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const ticket = await HelpTicket.findById(req.params.id);
+    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+
+    const message = ticket.messages.id(req.params.messageId);
+    if (!message) return res.status(404).json({ message: "Message not found" });
+
+    message.deleteOne();
+    await ticket.save();
+    await ticket.populate("user", "firstName lastName email role");
+
+    res.json(ticket);
+  } catch (err) {
+    console.error("Delete Help Ticket Message Error:", err);
+    res.status(500).json({ message: "Failed to delete message" });
   }
 };
 
 // Delete Ticket
 export const deleteTicket = async (req, res) => {
   try {
-    const { id } = req.params;
-    const deleted = await HelpTicket.findOneAndDelete({ _id: id, user: req.user._id });
+    const filter = isTicketManager(req.user)
+      ? { _id: req.params.id }
+      : { _id: req.params.id, user: req.user._id };
+    const deleted = await HelpTicket.findOneAndDelete(filter);
     if (!deleted) {
       return res.status(404).json({ message: "Ticket not found" });
     }

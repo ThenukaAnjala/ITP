@@ -1,4 +1,5 @@
 ﻿import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import helpDeskApi from "../services/helpDeskApi";
 import "../styles/pages/ticketmanager.css";
 
@@ -44,13 +45,8 @@ function TicketManagerLanding() {
     return ticket?.email || "Unknown";
   };
 
-  const renderStatus = (status) => {
-    const value = status || "OPEN";
-    const pretty = value
-      .toString()
-      .toUpperCase();
-    return pretty;
-  };
+  const renderStatus = (status) =>
+    (status || "OPEN").replace(/_/g, " ");
 
   const statusClass = (status) => {
     const value = (status || "OPEN").toLowerCase();
@@ -96,16 +92,22 @@ function TicketManagerLanding() {
                 <th>Status</th>
                 <th>Employee</th>
                 <th>Created</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {tickets.map((ticket) => (
                 <tr key={ticket._id}>
-                  <td>{ticket.name || ticket.subject || "Help Desk Ticket"}</td>
+                  <td>{ticket.name || "Help Desk Ticket"}</td>
                   <td>{ticket.message}</td>
                   <td className={statusClass(ticket.status)}>{renderStatus(ticket.status)}</td>
                   <td>{renderOwner(ticket)}</td>
                   <td>{formatDate(ticket.createdAt)}</td>
+                  <td>
+                    <Link className="ticket-link" to={`/tickets/${ticket._id}`}>
+                      Open
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

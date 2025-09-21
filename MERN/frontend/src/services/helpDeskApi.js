@@ -8,6 +8,14 @@ const headers = () => {
   };
 };
 
+const handleResponse = async (res) => {
+  if (!res.ok) {
+    const message = await res.text();
+    throw new Error(message || "Request failed");
+  }
+  return res.json();
+};
+
 export const submitHelpTicket = async (payload) => {
   const res = await fetch(API, {
     method: "POST",
@@ -15,11 +23,7 @@ export const submitHelpTicket = async (payload) => {
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to submit help ticket");
-  }
-
-  return res.json();
+  return handleResponse(res);
 };
 
 export const fetchAllHelpTickets = async () => {
@@ -27,11 +31,7 @@ export const fetchAllHelpTickets = async () => {
     headers: headers(),
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch help tickets");
-  }
-
-  return res.json();
+  return handleResponse(res);
 };
 
 export const fetchMyHelpTickets = async () => {
@@ -39,11 +39,15 @@ export const fetchMyHelpTickets = async () => {
     headers: headers(),
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch help tickets");
-  }
+  return handleResponse(res);
+};
 
-  return res.json();
+export const fetchHelpTicket = async (id) => {
+  const res = await fetch(`${API}/${id}`, {
+    headers: headers(),
+  });
+
+  return handleResponse(res);
 };
 
 export const updateHelpTicket = async (id, payload) => {
@@ -53,11 +57,7 @@ export const updateHelpTicket = async (id, payload) => {
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to update help ticket");
-  }
-
-  return res.json();
+  return handleResponse(res);
 };
 
 export const deleteHelpTicket = async (id) => {
@@ -66,17 +66,46 @@ export const deleteHelpTicket = async (id) => {
     headers: headers(),
   });
 
-  if (!res.ok) {
-    throw new Error("Failed to delete help ticket");
-  }
+  return handleResponse(res);
+};
 
-  return res.json();
+export const sendHelpTicketMessage = async (id, payload) => {
+  const res = await fetch(`${API}/${id}/message`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(res);
+};
+
+export const updateHelpTicketMessage = async (id, messageId, payload) => {
+  const res = await fetch(`${API}/${id}/message/${messageId}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify(payload),
+  });
+
+  return handleResponse(res);
+};
+
+export const deleteHelpTicketMessage = async (id, messageId) => {
+  const res = await fetch(`${API}/${id}/message/${messageId}`, {
+    method: "DELETE",
+    headers: headers(),
+  });
+
+  return handleResponse(res);
 };
 
 export default {
   submitHelpTicket,
   fetchAllHelpTickets,
   fetchMyHelpTickets,
+  fetchHelpTicket,
   updateHelpTicket,
   deleteHelpTicket,
+  sendHelpTicketMessage,
+  updateHelpTicketMessage,
+  deleteHelpTicketMessage,
 };

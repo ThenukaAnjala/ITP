@@ -1,148 +1,155 @@
-/* src/styles/pages/ticketdetails.css */
+﻿/* src/styles/pages/ticketdetails.css */
 
 .ticketdetails-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
   padding: 20px;
-  max-width: 800px;
-  margin: auto;
-}
-
-.back-btn {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-bottom: 15px;
-  cursor: pointer;
-}
-.back-btn:hover {
-  background: #1e40af;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .ticketdetails-card {
-  background: white;
-  padding: 15px 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-}
-
-.chat-section {
-  background: #f9fafb;
-  border-radius: 10px;
-  padding: 15px;
-}
-
-.chat-box {
-  max-height: 300px;
-  overflow-y: auto;
-  margin-bottom: 12px;
-  border: 1px solid #ddd;
-  padding: 10px;
-  border-radius: 8px;
+  width: 100%;
+  max-width: 540px;
   background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  padding: 28px 32px;
 }
 
-.chat-message {
-  margin-bottom: 8px;
-  padding: 6px 10px;
-  border-radius: 6px;
+.ticketdetails-card h2 {
+  margin-top: 0;
+  margin-bottom: 4px;
 }
 
-.chat-message.me {
-  background: #dbeafe;
-  text-align: right;
+.ticket-id {
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 12px;
 }
 
-.chat-message.other {
-  background: #f3f4f6;
-  text-align: left;
-}
-
-.chat-form {
-  display: flex;
-  gap: 10px;
-}
-
-.chat-form input {
-  flex: 1;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-.chat-form button {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.chat-form button:hover {
-  background: #1e40af;
-}
-/* Chat box */
 .chat-box {
-  margin-top: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 15px;
-  background: #f9f9f9;
+  margin-top: 24px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  padding: 16px;
 }
 
 .chat-messages {
-  max-height: 200px;
+  max-height: 260px;
   overflow-y: auto;
-  margin-bottom: 10px;
-  padding: 8px;
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 6px;
+  margin-bottom: 12px;
+  padding-right: 6px;
 }
 
 .chat-msg {
-  margin-bottom: 6px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
 }
 
 .chat-msg.me {
-  text-align: right;
-  color: #2563eb;
+  background: #dbeafe;
+  border-color: #bfdbfe;
 }
 
 .chat-msg.other {
-  text-align: left;
-  color: #444;
+  background: #f3f4f6;
+}
+
+.chat-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.chat-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chat-actions button {
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  background: #2563eb;
+  color: #fff;
+  transition: background 0.3s ease;
+}
+
+.chat-actions button:hover {
+  background: #1e40af;
+}
+
+.chat-actions button:nth-child(2) {
+  background: #9ca3af;
+}
+
+.chat-actions button:nth-child(2):hover {
+  background: #6b7280;
+}
+
+.chat-edit input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
 }
 
 .chat-input {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .chat-input input {
   flex: 1;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
 }
 
 .chat-input button {
   background: #2563eb;
   color: white;
   border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
   cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.chat-input button:hover:not(:disabled) {
+  background: #1e40af;
+}
+
+.chat-input button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .back-btn {
-  margin-top: 15px;
-  background: #ef4444;
+  margin-top: 20px;
+  background: #2563eb;
   color: #fff;
   border: none;
   padding: 10px 16px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
+}
+
+.back-btn:hover {
+  background: #1e40af;
 }
