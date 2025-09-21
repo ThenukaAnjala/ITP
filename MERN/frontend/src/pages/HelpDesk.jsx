@@ -11,6 +11,8 @@ function HelpDesk() {
     message: "",
   });
 
+  const [submitted, setSubmitted] = useState(false);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
@@ -18,10 +20,10 @@ function HelpDesk() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert(
-      `Help Request Sent:\nName: ${form.name}\nEmail: ${form.email}\nMessage: ${form.message}`
-    );
-    // 👉 Backend API call can be added here
+    // 👉 Later replace with API call
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 4000);
+    setForm((f) => ({ ...f, message: "" }));
   };
 
   return (
@@ -32,22 +34,39 @@ function HelpDesk() {
           <h2>Help Desk</h2>
         </div>
 
+        {submitted && (
+          <div className="helpdesk-success">
+            ✅ Your help request has been submitted successfully!
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="helpdesk-form">
-          <label>Full Name</label>
-          <input type="text" name="name" value={form.name} readOnly />
+          <label htmlFor="name">Full Name</label>
+          <input id="name" type="text" name="name" value={form.name} readOnly />
 
-          <label>Email</label>
-          <input type="email" name="email" value={form.email} readOnly />
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            name="email"
+            value={form.email}
+            readOnly
+          />
 
-          <label>Message</label>
+          <label htmlFor="message">Message</label>
           <textarea
+            id="message"
             name="message"
             placeholder="Describe your issue..."
             value={form.message}
             onChange={handleChange}
+            rows="4"
+            required
           />
 
-          <button type="submit">Submit Request</button>
+          <button type="submit" className="helpdesk-submit">
+            Submit Request
+          </button>
         </form>
       </div>
     </div>
