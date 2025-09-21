@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import helpDeskApi from "../services/helpDeskApi";
+import Button from "../components/buttons/Button";
 import "../styles/pages/ticketdetails.css";
 
 function TicketDetails() {
@@ -113,9 +114,9 @@ function TicketDetails() {
       <div className="ticketdetails-container">
         <div className="ticketdetails-card">
           <p>{error}</p>
-          <button className="cancel-ticket-btn" onClick={handleCancel}>
+          <Button variant="secondary" onClick={handleCancel}>
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -173,12 +174,24 @@ function TicketDetails() {
                           disabled={sending}
                         />
                         <div className="chat-actions">
-                          <button onClick={handleUpdateMessage} disabled={sending || !editingText.trim()}>
+                          <Button
+                            variant="success"
+                            size="sm"
+                            onClick={handleUpdateMessage}
+                            disabled={sending || !editingText.trim()}
+                            loading={sending}
+                            loadingText="Saving..."
+                          >
                             Save
-                          </button>
-                          <button onClick={cancelEdit} disabled={sending}>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={cancelEdit}
+                            disabled={sending}
+                          >
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ) : (
@@ -186,12 +199,22 @@ function TicketDetails() {
                         <p>{msg.text}</p>
                         {isManager && msg.sender === "manager" && (
                           <div className="chat-actions">
-                            <button onClick={() => startEdit(msg)} disabled={sending}>
+                            <Button
+                              variant="subtle"
+                              size="sm"
+                              onClick={() => startEdit(msg)}
+                              disabled={sending}
+                            >
                               Edit
-                            </button>
-                            <button onClick={() => handleDeleteMessage(msg._id)} disabled={sending}>
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => handleDeleteMessage(msg._id)}
+                              disabled={sending}
+                            >
                               Delete
-                            </button>
+                            </Button>
                           </div>
                         )}
                       </>
@@ -218,15 +241,22 @@ function TicketDetails() {
                 }
               }}
             />
-            <button onClick={handleSend} disabled={sending || !newMessage.trim()}>
-              {sending ? "Sending..." : "Send"}
-            </button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleSend}
+              disabled={sending || !newMessage.trim()}
+              loading={sending}
+              loadingText="Sending..."
+            >
+              Send
+            </Button>
           </div>
         </div>
 
-        <button className="cancel-ticket-btn" onClick={handleCancel}>
+        <Button variant="secondary" onClick={handleCancel}>
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   );

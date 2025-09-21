@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/pages/helpdesk.css";
+import Button from "../components/buttons/Button";
 import BackButton from "../components/BackButton";
 import helpDeskApi from "../services/helpDeskApi";
 
@@ -185,19 +186,20 @@ function HelpDesk() {
             onChange={handleChange}
           />
 
-          <button type="submit" disabled={submitting}>
-            {submitting ? "Submitting..." : "Submit Request"}
-          </button>
+          <Button type="submit" variant="primary" loading={submitting} loadingText="Submitting...">
+            Submit Request
+          </Button>
         </form>
 
         <div style={{ marginTop: "20px", textAlign: "center" }}>
-          <button
+          <Button
+            variant="secondary"
             className="view-tickets-btn"
             onClick={() => setShowTickets((prev) => !prev)}
             disabled={loading}
           >
             {showTickets ? "Hide Tickets" : "View My Tickets"}
-          </button>
+          </Button>
         </div>
 
         {showTickets && (
@@ -225,15 +227,19 @@ function HelpDesk() {
                             value={editSubject}
                             onChange={(e) => setEditSubject(e.target.value)}
                           />
-                          <button
-                            className="save-btn"
+                          <Button
+                            variant="success"
+                            size="sm"
                             onClick={() => handleSaveEdit(id)}
                             disabled={editLoading}
+                            loading={editLoading}
+                            loadingText="Saving..."
                           >
-                            {editLoading ? "Saving..." : "Save"}
-                          </button>
-                          <button
-                            className="cancel-btn"
+                            Save
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
                               setEditingTicket(null);
                               setEditSubject("");
@@ -241,7 +247,7 @@ function HelpDesk() {
                             disabled={editLoading}
                           >
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                       ) : (
                         <div>
@@ -256,20 +262,24 @@ function HelpDesk() {
                             </>
                           )}
                           <div style={{ marginTop: "6px" }}>
-                            <button
-                              className="edit-btn"
+                            <Button
+                              variant="subtle"
+                              size="sm"
                               onClick={() => handleEdit(t)}
                               disabled={deleteLoading}
                             >
                               Edit
-                            </button>
-                            <button
-                              className="delete-btn"
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
                               onClick={() => handleDelete(id)}
                               disabled={deleteLoading || editLoading}
+                              loading={deleteLoading}
+                              loadingText="Deleting..."
                             >
-                              {deleteLoading ? "Deleting..." : "Delete"}
-                            </button>
+                              Delete
+                            </Button>
                           </div>
                         </div>
                       )}

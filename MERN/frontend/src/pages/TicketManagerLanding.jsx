@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import helpDeskApi from "../services/helpDeskApi";
 import LogoutButton from "../components/LogoutButton";
 import "../styles/pages/ticketmanager.css";
+import Button from "../components/buttons/Button";
 
 function TicketManagerLanding() {
   const manager = JSON.parse(localStorage.getItem("user") || "{}");
@@ -68,13 +69,15 @@ function TicketManagerLanding() {
           </p>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button
-            className="ticket-refresh"
+          <Button
+            variant="primary"
             onClick={loadTickets}
             disabled={loading}
+            loading={loading}
+            loadingText="Refreshing..."
           >
-            {loading ? "Refreshing..." : "Refresh"}
-          </button>
+            Refresh
+          </Button>
           <LogoutButton />
         </div>
       </header>
