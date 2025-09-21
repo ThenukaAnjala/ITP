@@ -5,6 +5,7 @@ import {
   deleteUser,
   updateUser,
 } from "../services/api";
+import LogoutButton from "../components/LogoutButton";
 import "../styles/pages/admin.css";
 
 function AdminLanding() {
@@ -48,12 +49,6 @@ function AdminLanding() {
     } catch (err) {
       console.error("Failed to load users:", err);
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "/";
   };
 
   const onChange = (e) => {
@@ -132,9 +127,7 @@ function AdminLanding() {
         <div className="admin-info">
           <span className="admin-name">👤 {adminName || "Factory Admin"}</span>
         </div>
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
+        <LogoutButton />
       </header>
 
       {/* Main grid */}

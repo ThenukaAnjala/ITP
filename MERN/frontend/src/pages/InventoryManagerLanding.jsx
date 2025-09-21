@@ -9,6 +9,7 @@ import {
   deleteGrn,
   updateGrn,
 } from "../services/inventoryApi";
+import LogoutButton from "../components/LogoutButton";
 import "../styles/pages/inventoryManager.css";
 
 function InventoryManagerLanding() {
@@ -45,12 +46,6 @@ function InventoryManagerLanding() {
   const loadGrns = async () => {
     const data = await getGrns();
     setGrns(data || []);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "/";
   };
 
   // ---------------- Item handlers ----------------
@@ -140,9 +135,7 @@ function InventoryManagerLanding() {
     <div className="inv-wrap">
       <header className="inv-header">
         <h1>Inventory Manager Dashboard</h1>
-        <button className="logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
+        <LogoutButton />
       </header>
 
       {/* Add / Edit Item */}

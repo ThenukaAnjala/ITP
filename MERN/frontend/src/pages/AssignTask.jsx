@@ -1,6 +1,7 @@
 // src/pages/AssignTask.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import BackButton from "../components/BackButton";
 import {
   getTasks,
   createTask,
@@ -11,7 +12,6 @@ import { getUsers } from "../services/api";
 
 function AssignTask() {
   const { id } = useParams(); // 👈 Rubber Tapper ID
-  const navigate = useNavigate();
 
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
@@ -109,9 +109,7 @@ function AssignTask() {
     <div className="emp-wrap">
       <header className="emp-header">
         <h1>Tasks for Rubber Tapper</h1>
-        <button className="logout-btn" onClick={() => navigate(-1)}>
-          🔙 Back
-        </button>
+        <BackButton includeBaseStyles={false} className="logout-btn">Back</BackButton>
       </header>
 
       {msg && <div className="ok">{msg}</div>}

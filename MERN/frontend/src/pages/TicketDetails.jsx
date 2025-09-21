@@ -1,11 +1,11 @@
 // src/pages/TicketDetails.jsx
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import BackButton from "../components/BackButton";
 import "../styles/pages/helpdesk.css"; // reuse styling
 
 function TicketDetails() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
   // Simulated ticket data (replace with backend call)
   const [ticket, setTicket] = useState(null);
@@ -70,9 +70,7 @@ function TicketDetails() {
           </div>
         </div>
 
-        <button className="back-btn" onClick={() => navigate(-1)}>
-          ⬅ Back
-        </button>
+        <BackButton className="back-btn" includeBaseStyles={false}>Back</BackButton>
       </div>
     </div>
   );

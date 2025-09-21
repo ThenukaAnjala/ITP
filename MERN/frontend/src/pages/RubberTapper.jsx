@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyTasks, updateTask } from "../services/inventoryApi";
+import LogoutButton from "../components/LogoutButton";
 
 function RubberTapper() {
   const navigate = useNavigate();
@@ -12,12 +13,6 @@ function RubberTapper() {
   const [timers, setTimers] = useState({});
   const [running, setRunning] = useState({});
   const [notes, setNotes] = useState({}); // { taskId: "note text" }
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "/";
-  };
 
   const handleHelpDesk = () => {
     navigate("/helpdesk");
@@ -138,7 +133,7 @@ function RubberTapper() {
         <h2>👷 Rubber Tapper Dashboard</h2>
         <div style={{ display: "flex", gap: "10px" }}>
           <button onClick={handleHelpDesk}>Help Desk</button>
-          <button onClick={handleLogout}>Logout</button>
+          <LogoutButton includeBaseStyles={false}>Logout</LogoutButton>
         </div>
       </header>
 
