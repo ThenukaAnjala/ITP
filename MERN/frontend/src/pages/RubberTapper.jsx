@@ -1,16 +1,17 @@
 // src/pages/RubberTapper.jsx
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getMyTasks, updateTask } from "../services/inventoryApi";
 
 function RubberTapper() {
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const [tasks, setTasks] = useState([]);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
-
-  // Timer states
-  const [timers, setTimers] = useState({}); // { taskId: seconds }
-  const [running, setRunning] = useState({}); // { taskId: boolean }
+  const [timers, setTimers] = useState({});
+  const [running, setRunning] = useState({});
+  const [notes, setNotes] = useState({}); // { taskId: "note text" }
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -18,10 +19,21 @@ function RubberTapper() {
     window.location.href = "/";
   };
 
+  const handleHelpDesk = () => {
+    navigate("/helpdesk");
+  };
+
   const loadTasks = async () => {
     try {
       const data = await getMyTasks();
       setTasks(Array.isArray(data) ? data : []);
+
+      // preload notes
+      const noteMap = {};
+      data.forEach((t) => {
+        noteMap[t._id] = t.note || "";
+      });
+      setNotes(noteMap);
     } catch (error) {
       console.error("Failed to load tasks:", error);
       setErr("❌ Could not fetch tasks.");
@@ -53,9 +65,8 @@ function RubberTapper() {
   const handleStart = async (taskId) => {
     setRunning((r) => ({ ...r, [taskId]: true }));
     setMsg(`▶️ Timer started for task ${taskId}`);
-
     try {
-      await updateTask(taskId, { action: "START" }); // ✅ send action
+      await updateTask(taskId, { action: "START" });
       loadTasks();
     } catch {
       setErr("❌ Failed to update task");
@@ -66,9 +77,8 @@ function RubberTapper() {
   const handlePause = async (taskId) => {
     setRunning((r) => ({ ...r, [taskId]: false }));
     setMsg(`⏸️ Timer paused for task ${taskId}`);
-
     try {
-      await updateTask(taskId, { action: "PAUSE" }); // ✅ send action
+      await updateTask(taskId, { action: "PAUSE" });
       loadTasks();
     } catch {
       setErr("❌ Failed to update task");
@@ -83,16 +93,26 @@ function RubberTapper() {
       "Enter final status (IN_PROGRESS or DONE):",
       "DONE"
     );
-
     if (!newStatus) return;
 
     try {
-      await updateTask(taskId, { status: newStatus, action: "STOP" }); // ✅ send status + action
+      await updateTask(taskId, { status: newStatus, action: "STOP" });
       setMsg(`✅ Task updated to ${newStatus}`);
       setErr("");
       loadTasks();
     } catch {
       setErr("❌ Failed to update task");
+    }
+  };
+
+  // Save note
+  const handleSaveNote = async (taskId) => {
+    try {
+      await updateTask(taskId, { note: notes[taskId] });
+      setMsg("✅ Note saved successfully");
+      loadTasks();
+    } catch {
+      setErr("❌ Failed to save note");
     }
   };
 
@@ -116,7 +136,10 @@ function RubberTapper() {
         }}
       >
         <h2>👷 Rubber Tapper Dashboard</h2>
-        <button onClick={handleLogout}>Logout</button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button onClick={handleHelpDesk}>Help Desk</button>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
       </header>
 
       <p>
@@ -135,6 +158,7 @@ function RubberTapper() {
             <th>Due Date</th>
             <th>Status</th>
             <th>Timer</th>
+            <th>Notes</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -150,6 +174,17 @@ function RubberTapper() {
                 <td>{t.status}</td>
                 <td>{formatTime(timers[t._id] || 0)}</td>
                 <td>
+                  <textarea
+                    rows="2"
+                    style={{ width: "100%" }}
+                    value={notes[t._id] || ""}
+                    onChange={(e) =>
+                      setNotes((n) => ({ ...n, [t._id]: e.target.value }))
+                    }
+                  />
+                  <button onClick={() => handleSaveNote(t._id)}>Save Note</button>
+                </td>
+                <td>
                   {!running[t._id] && (
                     <button onClick={() => handleStart(t._id)}>Start</button>
                   )}
@@ -162,7 +197,7 @@ function RubberTapper() {
             ))
           ) : (
             <tr>
-              <td colSpan="6">No tasks assigned yet</td>
+              <td colSpan="7">No tasks assigned yet</td>
             </tr>
           )}
         </tbody>
