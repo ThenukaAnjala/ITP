@@ -1,4 +1,4 @@
-const API = "http://localhost:5000/api/tickets";
+﻿const API = "http://localhost:5000/api/tickets";
 
 const headers = () => {
   const token = localStorage.getItem("token");
@@ -6,6 +6,11 @@ const headers = () => {
     "Content-Type": "application/json",
     Authorization: token ? `Bearer ${token}` : "",
   };
+};
+
+export const getAllTickets = async () => {
+  const res = await fetch(API, { headers: headers() });
+  return res.json();
 };
 
 export const getMyTickets = async () => {
@@ -40,6 +45,7 @@ export const deleteTicket = async (id) => {
 };
 
 export default {
+  getAllTickets,
   getMyTickets,
   createTicket,
   updateTicket,
