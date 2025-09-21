@@ -35,7 +35,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 22px;
+  margin: 0; /* moved spacing to .helpdesk-top */
 }
 
 .helpdesk-header h2 {
@@ -48,6 +48,29 @@
   font-size: 28px;
   margin-right: 10px;
   color: #2563eb;
+}
+
+/* Top row containing back button and header */
+.helpdesk-top {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+/* Back button (uses same class name as other pages) */
+.helpdesk-card .back-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.helpdesk-card .back-btn:hover {
+  background: #1e40af;
 }
 
 /* Success message */
@@ -133,6 +156,12 @@
 @media (max-width: 480px) {
   .helpdesk-card {
     padding: 20px;
+  }
+
+  .helpdesk-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 
   .helpdesk-header h2 {

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "../styles/pages/helpdesk.css";
+import BackButton from "../components/BackButton";
 import helpDeskApi from "../services/helpDeskApi";
 
 function HelpDesk() {
@@ -158,9 +159,12 @@ function HelpDesk() {
   return (
     <div className="helpdesk-container">
       <div className="helpdesk-card">
-        <div className="helpdesk-header">
-          <span className="helpdesk-icon">HD</span>
-          <h2>Help Desk</h2>
+        <div className="helpdesk-top">
+          <BackButton includeBaseStyles={false} className="back-btn">Back</BackButton>
+          <div className="helpdesk-header">
+            <span className="helpdesk-icon">HD</span>
+            <h2>Help Desk</h2>
+          </div>
         </div>
 
         {error && <div className="helpdesk-error">{error}</div>}
